@@ -6,11 +6,11 @@ execute:
   echo: true
 
 book:
-  title: "YOUR PROJECT TITLE"
+  title: "NYC"
   author:
-    - AUTHOR1 (UNI1)
-    - AUTHOR2 (UNI2)
-  repo-url: https://github.com/YOUR_GITHUB_ACCOUNT/REPO_NAME
+    - Shreya Shetty (svs2148)
+    - Shruti Shetty (ss7592)
+  repo-url: https://github.com/shreyashetty2/edav_project
   date: today
   page-footer:
     right: |
