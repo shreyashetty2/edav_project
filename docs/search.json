@@ -14,6 +14,16 @@
     "href": "data.html",
     "title": "2  Data",
     "section": "",
+    "text": "2.0.1 Dataset 1\nThere are 4 dataset links that we will utilize from https://opendata.cityofnewyork.us. It is public data published by New York City agencies and other partners.\nLink: Housing Maintenance Code Violations\nThe data is provided from the Department of Housing Preservation and Development (HPD), and the dataset owner is NYC OpenData. It is updated daily. It currently has 10.4M rows and 41 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row in this dataset contains information about one violation of the New York City Housing Maintenance Code or New York State Multiple Dwelling Law. The row identifier is ViolationID, and some of the other columns include BuildingID, RegistrationID (valid registration information), BoroID (to identify borough), Apartment (Apartment with violation), inspectiondate (Date when the violation was observed), etc. The violations are issued by HPD inspectors during building inspections, which are triggered by tenant complaints, routine checks, etc, and the data is collected.",
+    "crumbs": [
+      "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data</span>"
+    ]
+  },
+  {
+    "objectID": "data.html#description",
+    "href": "data.html#description",
+    "title": "2  Data",
+    "section": "2.1 Description",
     "text": "2.1 Description",
     "crumbs": [
       "<span class='chapter-number'>2</span>  <span class='chapter-title'>Data</span>"
