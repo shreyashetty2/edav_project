@@ -6,10 +6,10 @@ execute:
   echo: true
 
 book:
-  title: "NYC"
+  title: "NYC Building Violation Analysis"
   author:
-    - Shreya Shetty (svs2148)
-    - Shruti Shetty (ss7592)
+    - Shreya Vishwanath Shetty (svs2148)
+    - Shruti Vishwanath Shetty (ss7592)
   repo-url: https://github.com/shreyashetty2/edav_project
   date: today
   page-footer:

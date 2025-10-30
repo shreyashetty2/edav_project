@@ -2,9 +2,9 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "NYC",
+    "title": "NYC Building Violation Analysis",
     "section": "",
-    "text": "1 Introduction",
+    "text": "1 Introduction\nThe reason we chose this topic is because we are international students who recently moved to New York City to pursue MS in Data Science at Columbia University and we had faced a lot of issues trying to find a decent apartment in a well maintained building with minimum housing violations within a safe neighborhood. We feel this data is not very easily available to the public since we had to go through a lot of trouble to find the number of violations, compliance, and turnaround time taken by management to fix those issues. We aim to perform exploratory data analysis on NYC open datasets including data regarding building violations, permits, maintenance violations, and 311 requests to provide insights and understand patterns of violations in boroughs/regions and how the management responds to these vital issues in such a densely populated city. The insights we provide will be helpful to identify areas with comparatively more safety and maintenance problems and also help understand the relationship between complaints, housing regulations, official violations, and proactive improvement and repair by the management or city.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>Introduction</span>"
     ]
