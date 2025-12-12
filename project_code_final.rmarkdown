@@ -1,0 +1,1110 @@
+---
+title: "NYC Building Violation Analysis"
+author: "Shreya Shetty (svs2148) & Shruti Shetty (ss7592)"
+editor: visual
+execute:
+  echo: true
+format:
+  html:
+    fig-width: 6
+    fig-height: 4
+    out-width: 60%
+    embed-resources: true
+---
+
+
+
+
+
+## Loading Libraries
+
+
+
+
+
+```{r}
+# Libraries
+library(dplyr)
+library(lubridate)
+library(janitor)
+library(ggplot2)
+library(ggalluvial)
+library(tidyr)
+library(scales)
+library(data.table)
+library(readr)
+library(tidyverse)
+library(forcats)
+library(stringr)
+library(redav)
+library(GGally)
+```
+
+
+
+
+
+## Loading Housing Violations and 311 Complaints Datasets
+
+
+
+
+
+```{r}
+# ========== HOUSING VIOLATIONS ==========
+housing_raw <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/Housing_Violations_2022_onwards.csv")
+
+# ========== 311 HOUSING COMPLAINTS ==========
+sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/311_Housing_Complaints_2022_onwards.csv")
+
+```
+
+
+
+
+
+## Formatting dates and making sure loaded data has only Manhattan Borough entries
+
+Here, we created a robust set of parse orders for mixed formats in both our datasets. We created cleaned date columns while keep original columns untouched. Also, we added new columns with month-year (Month name + Year) extracted which will be used for alluvial stacks later on
+
+
+
+
+
+```{r}
+# VALID DATE ORDERS
+
+date_orders <- c("mdY HMS", "mdY HM", "mdY", "Ymd HMS", "Ymd")
+
+housing <- housing_raw |>
+  mutate(
+    borough_std = toupper(Borough),
+    # PARSE master versions — keep duplicates untouched
+    inspectiondate_clean = parse_date_time(InspectionDate, orders = date_orders),
+    approveddate_clean   = parse_date_time(ApprovedDate, orders = date_orders),
+    certifieddate_clean  = parse_date_time(CertifiedDate, orders = date_orders),
+    novissued_clean      = parse_date_time(NOVIssuedDate, orders = date_orders),
+    statusdate_clean     = parse_date_time(CurrentStatusDate, orders = date_orders),
+    originalcertifybydate_clean = parse_date_time(OriginalCertifyByDate, orders = date_orders),
+    originalcorrectbydate_clean = parse_date_time(OriginalCorrectByDate, orders = date_orders),
+    newcertifybydate_clean = parse_date_time(NewCertifyByDate, orders = date_orders),
+    newcorrectbydate_cean = parse_date_time(NewCorrectByDate, orders = date_orders),
+  ) |>
+  filter(borough_std == "MANHATTAN")
+
+sr311 <- sr311_raw |>
+  mutate(
+    borough_std = toupper(Borough),
+    created_clean = parse_date_time(Created.Date, orders = date_orders),
+    closed_clean  = parse_date_time(Closed.Date, orders = date_orders)
+  ) |>
+  filter(borough_std == "MANHATTAN")
+
+
+# adding month-year (Month name + Year) columns used for alluvial stacks
+
+housing <- housing |>
+  mutate(
+    inspection_month = ifelse(!is.na(inspectiondate_clean),
+                              format(floor_date(inspectiondate_clean, "month"), "%B %Y"),
+                              NA_character_),
+    approved_month = ifelse(!is.na(approveddate_clean), 
+                            format(floor_date(approveddate_clean,"month"), "%B %Y"),
+                            NA_character_),
+    nov_month = ifelse(!is.na(novissued_clean),
+                       format(floor_date(novissued_clean, "month"), "%B %Y"),
+                       NA_character_),
+    status_month = ifelse(!is.na(statusdate_clean),
+                          format(floor_date(statusdate_clean, "month"), "%B %Y"),
+                          NA_character_)
+  )
+
+# Hosuing violations rows
+nrow(housing)
+
+sr311 <- sr311 |>
+  mutate(
+    created_month = ifelse(!is.na(created_clean),
+                           format(floor_date(created_clean, "month"), "%B %Y"),
+                           NA_character_),
+    closed_month = ifelse(!is.na(closed_clean),
+                           format(floor_date(closed_clean, "month"), "%B %Y"),
+                           NA_character_)
+)
+
+# 311 requests rows updated
+nrow(sr311)
+
+```
+
+
+
+
+
+The date columns have been parsed properly and as we can see the both raw data we downloaded, only had data from the Manhattan borough since before and after filtering the number of rows remain same for both datastes i.e. 589005 rows in Housing Violations dataset and 425248 rows in 311 requests dataset.
+
+## Housing violation decription column data cleaning
+
+
+
+
+
+```{r}
+## Housing violation description column data cleaning
+
+# First, let's inspect NOVDescription
+head(housing$NOVDescription, 10)
+
+# ========== REFINED CATEGORIZATION ==========
+housing <- housing |>
+  mutate(
+    ViolationCategory = case_when(
+
+      # 1 — Registration (Class I)
+      Class == "I" |
+        str_detect(NOVDescription, regex("registration|register", ignore_case = TRUE)) ~
+        "REGISTRATION/ADMIN",
+
+      # 2 — Smoke / CO
+      str_detect(NOVDescription, regex("smoke detector|carbon monoxide|co detect", ignore_case = TRUE)) ~
+        "SMOKE/CO DETECTOR",
+
+      # 3 — Heat / Hot Water
+      str_detect(NOVDescription, regex("heat|heating|hot water|radiator|boiler|steam|too cold", ignore_case = TRUE)) ~
+        "HEAT/HOT WATER",
+
+      # 4 — Plumbing
+      str_detect(NOVDescription, regex("plumb|pipe|faucet|drain|sewer|bathroom|sink|toilet|water supply", ignore_case = TRUE)) ~
+        "PLUMBING",
+
+      # 5 — Water leak
+      str_detect(NOVDescription, regex("leak|leaking|leakage|water drip", ignore_case = TRUE)) ~
+        "WATER LEAK",
+
+      # 6 — Paint / Plaster
+      str_detect(NOVDescription, regex("paint|plaster|peel|wall|ceiling", ignore_case = TRUE)) ~
+        "PAINT/PLASTER",
+
+      # 7 — Door / Window / Lock
+      str_detect(NOVDescription, regex("door|window|lock|self-closing|entrance", ignore_case = TRUE)) ~
+        "DOOR/WINDOW/LOCK",
+
+      # 8 — Pest / Sanitation
+      str_detect(NOVDescription, regex("rodent|pest|roach|mice|rat|garbage|infest|sanitation", ignore_case = TRUE)) ~
+        "PEST/SANITATION",
+
+      # 9 — Floor / Ceiling
+      str_detect(NOVDescription, regex("floor|tile|carpet|wood floor|ceramic", ignore_case = TRUE)) ~
+        "FLOOR/CEILING",
+
+      # 10 — Elevator
+      str_detect(NOVDescription, regex("elevator|lift", ignore_case = TRUE)) ~
+        "ELEVATOR",
+
+      # 11 — Mold
+      str_detect(NOVDescription, regex("mold|mildew|moisture", ignore_case = TRUE)) ~
+        "MOLD",
+
+      # 12 — Electrical
+      str_detect(NOVDescription, regex("electric|wiring|outlet|light|circuit", ignore_case = TRUE))  ~ "ELECTRICAL",
+
+      # 13 — Gas / Appliances
+      str_detect(NOVDescription, regex("gas|appliance|stove", ignore_case = TRUE)) ~
+        "GAS/APPLIANCES",
+
+      # 14 — Ventilation
+      str_detect(NOVDescription, regex("ventilat|airflow|exhaust fan", ignore_case = TRUE)) ~
+        "VENTILATION",
+
+      # 15— Fire Safety
+      str_detect(NOVDescription, regex("fire|sprinkler|fire escape|extinguish", ignore_case = TRUE)) ~
+        "FIRE SAFETY",
+
+      # 16— Intercom / Bell
+      str_detect(NOVDescription, regex("bell|buzzer|intercom", ignore_case = TRUE)) ~
+        "BUILDING SYSTEMS",
+
+      # 17 — Building Management
+      str_detect(NOVDescription, regex("janitor|superintendent|building service|super", ignore_case = TRUE)) ~
+        "BUILDING MANAGEMENT",
+
+      # Default
+      TRUE ~ "OTHER"
+    )
+  )
+
+# Check distribution of newly created categories
+housing |>
+  count(ViolationCategory, sort = TRUE) |>
+  print()
+```
+
+```{r}
+# ========== 311: CATEGORY MAPPING (parallel to housing) ==========
+
+# Compare with 311 Complaint Types
+sr311 |>
+  count(Complaint.Type, sort = TRUE) |>
+  print()
+
+# Mapped categories
+sr311 <- sr311 |>
+  mutate(
+    Category = case_when(
+      # Heat / Hot Water
+      str_detect(`Complaint.Type`, regex("HEAT|HOT WATER", ignore_case = TRUE)) ~ "HEAT/HOT WATER",
+      
+      # Plumbing
+      str_detect(`Complaint.Type`, regex("PLUMBING", ignore_case = TRUE)) ~ "PLUMBING",
+      
+      # Water Leak
+      str_detect(`Complaint.Type`, regex("WATER LEAK", ignore_case = TRUE)) ~ "WATER LEAK",
+      
+      # Elevator
+      str_detect(`Complaint.Type`, regex("ELEVATOR", ignore_case = TRUE)) ~ "ELEVATOR",
+      
+      # Mold
+      str_detect(`Complaint.Type`, regex("MOLD", ignore_case = TRUE)) ~ "MOLD",
+      
+      # PAINT / PLASTER — newly added
+      str_detect(`Complaint.Type`, regex("PAINT|PLASTER", ignore_case = TRUE)) ~ "PAINT/PLASTER",
+      
+      # Pest / sanitation based on Complaint.Type AND Descriptor
+      (
+        str_detect(`Complaint.Type`, regex("MAINTENANCE|FACILITY", ignore_case = TRUE)) &
+        str_detect(Descriptor, regex("rodent|rodents|mice|rats|mouse|rat|insect|pest", ignore_case = TRUE))
+      ) ~ "PEST/SANITATION",
+      
+      # Fallback
+      TRUE ~ "OTHER"
+    )
+  )
+
+# New mapped categories
+sr311 |>
+  count(Category, sort = TRUE) |>
+  print()
+
+```
+
+
+
+
+
+Here, manual categorization logic we applied successfully maps unstructured text descriptions (NOVDescriptions) in Housing Violations dataset into unified high-level categories which enables a direct one-to-one comparison between both. We also normalized the categories in 311 Complaints dataset since there were multiple for the same category, ege. there were 2 types "HEAT/HOT WATER" and "Heat/Hot Water" which were merged into 1.
+
+## Save cleaned CSV copies for reproducibility
+
+
+
+
+
+```{r}
+write.csv(housing, "datasets/housing_manhattan_3years_clean.csv", row.names = FALSE)
+write.csv(sr311,   "datasets/sr311_manhattan_3years_clean.csv", row.names = FALSE)
+```
+
+
+
+
+
+## CATEGORY COMPARISON: Housing vs 311
+
+
+
+
+
+```{r}
+#| fig-height: 7
+comparison_categories <- c(
+  "HEAT/HOT WATER", "PLUMBING", "PAINT/PLASTER",
+  "WATER LEAK", "ELEVATOR", "MOLD", "PEST/SANITATION"
+)
+
+# Violations count
+viol_comparison <- housing |>
+  filter(ViolationCategory %in% comparison_categories) |>
+    group_by(ViolationCategory) |>
+      summarise(Count = n(), .groups = "drop") |>
+        mutate(
+          Category = ViolationCategory,
+          Source = "Housing Violations"
+        ) |>
+          select(Category, Count, Source)
+
+# 311 count
+complaints_comparison <- sr311 |>
+  filter(Category %in% comparison_categories) |>
+    group_by(Category) |>
+      summarise(Count = n(), .groups = "drop") |>
+        mutate(Source = "311 Complaints")
+
+# Combine both
+combined <- bind_rows(viol_comparison, complaints_comparison)
+
+# Plot
+ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = scales::comma(Count)),
+            position = position_dodge(width = 0.9),
+            vjust = -0.5, size = 3) +
+  scale_fill_manual(values = c(
+    "Housing Violations" = "purple",
+    "311 Complaints"     = "pink"
+  )) +
+  scale_y_continuous(labels = scales::comma,
+                     expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Violations vs 311 Complaints by Category",
+    subtitle = "Manhattan (Last 3 yrs) Comparable Categories Only",
+    x = "Category",
+    y = "Count",
+    fill = "Source"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 14),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "top"
+  )
+
+```
+
+
+
+
+
+There is a substantial disparity in volume for the "HEAT/HOT WATER" category in violations vs complaints, where the number of 311 Service Requests is significantly higher than the count of official Housing violations issued for the same. Hence, we can conclude that while tenant complaints regarding heating are very very frequent, quite a smaller proportion result in confirmed enforcement actions by management. In other categories, the difference is relatively small. In case of Paint/Plaster and Pests, there is much higher number of building violation entries which shows that probably regular building inspections is conducted for those and hence less direct 311 complaints. Out of all top 7 identified categories overlapping in both the datasets, Heat/Hot Water is the highest and Mold is the lowest complaint type.
+
+## 3-year per-quarter faceted plots
+
+
+
+
+
+```{r}
+#| fig-height: 7
+# ----- HOUSING: QUARTERLY CATEGORY TRENDS (3-LINE-QTRS) -----
+
+housing_quarter_lines <- housing |>
+  filter(!is.na(inspectiondate_clean)) |>
+    mutate(
+      year = year(inspectiondate_clean),
+      quarter = paste0("Q", quarter(inspectiondate_clean))
+    ) |>
+      count(year, quarter, ViolationCategory) |>
+        mutate(
+          quarter = factor(quarter, levels = c("Q1","Q2","Q3","Q4"))
+        )
+
+focus_cats <- c(
+  "HEAT/HOT WATER",
+  "PLUMBING",
+  "PAINT/PLASTER",
+  "WATER LEAK",
+  "ELEVATOR",
+  "MOLD",
+  "PEST/SANITATION"
+)
+
+housing_quarter_lines_focus <- housing_quarter_lines |>
+  dplyr::filter(ViolationCategory %in% focus_cats)
+
+ggplot(housing_quarter_lines_focus,
+       aes(x = quarter, y = n, color = factor(year), group = year)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.2) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_color_manual(values = c("2023" = "#E63946",
+                                "2024" = "#457B9D",
+                                "2025" = "#2A9D8F"),
+                     name = "Year") +
+  facet_wrap(~ ViolationCategory,
+             scales = "free_y",
+             ncol = 2) +    
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 17),
+    axis.text.x = element_text(angle = 0),
+    legend.position = "top"
+  ) +
+  labs(
+    title = "Quarterly Housing Violations by Category",
+    subtitle = "Manhattan (2022–25) • Selected Categories",
+    x = "Quarter",
+    y = "Number of Violations"
+  )
+
+
+# ----- 311: QUARTERLY CATEGORY TRENDS (3-LINE-QTRS) -----
+
+sr311_quarter_lines <- sr311 |>
+  filter(!is.na(created_clean)) |>
+  mutate(
+    year    = year(created_clean),
+    quarter = paste0("Q", quarter(created_clean))
+  ) |>
+  count(year, quarter, Category) |>
+  mutate(
+    quarter = factor(quarter, levels = c("Q1","Q2","Q3","Q4"))
+  )
+
+sr311_quarter_lines_focus <- sr311_quarter_lines |>
+  filter(Category %in% focus_cats)
+
+ggplot(sr311_quarter_lines_focus,
+       aes(x = quarter, y = n, color = factor(year), group = year)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.2) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_color_manual(values = c("2023" = "#E63946",
+                                "2024" = "#457B9D",
+                                "2025" = "#2A9D8F"),
+                     name = "Year") +
+  facet_wrap(~ Category, scales = "free_y", ncol = 2) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title  = element_text(face = "bold", size = 17),
+    axis.text.x = element_text(angle = 0),
+    legend.position = "top"
+  ) +
+  labs(
+    title    = "Quarterly 311 Complaints by Category",
+    subtitle = "Manhattan (2022-25) • Selected Categories",
+    x = "Quarter",
+    y = "Number of Complaints"
+  )
+
+```
+
+
+
+
+
+Across quarters, HEAT/HOT WATER 311 complaints and housing violations both show a clear seasonal pattern. They spike in Q1, drop sharply in Q2 and Q3 for all 3 years, and rise again Q4 matching winter heating needs. For PLUMBING, PAINT/PLASTER, PEST/SANITATION, WATER LEAK, ELEVATOR, and MOLD, housing violations counts change over the quarters (most show a local peak around Q3), but patterns are less sharp and not perfectly identical so they don't show a single clear seasonal shape like HEAT/HOT WATER does. Pest and sanitation 311 complaints peak in Q3 in all 3 years, which suggests these problems are most common in late summer, which is also consistent with warmer weather since heat and humidity make it easier for rodents, roaches, and insects to spread, and garbage issues can get worse when it’s so hot. But it's not as strong or as perfectly consistent across all years. For the other categories for 311 complaints, the quarter‑to‑quarter changes within each panel are relatively small and do not follow a clear, repeated seasonal shape across years.
+
+## Housing Violation Monthly Transition Alluvial for 2024 (for a small sample size)
+
+
+
+
+
+```{r}
+# ---- Housing Violation 2024 Monthly Transition Alluvial ----
+
+set.seed(200)
+month_levels <- c("Jan","Feb","Mar","Apr","May","Jun",
+                  "Jul","Aug","Sep","Oct","Nov","Dec")
+
+viol_flow_2024 <- housing |>
+  select(ViolationID, Class,
+         inspectiondate_clean, novissued_clean, statusdate_clean) |>
+  mutate(
+    insp_m = floor_date(inspectiondate_clean, "month"),
+    nov_m  = floor_date(novissued_clean,       "month"),
+    stat_m = floor_date(statusdate_clean,      "month")
+  ) |>
+  filter(!is.na(insp_m),
+         year(insp_m) == 2024,
+         (!is.na(nov_m) | !is.na(stat_m))) |>
+  slice_sample(n = 200) |>
+  mutate(
+    insp_m_lab = factor(format(insp_m, "%b"),  levels = month_levels),
+    nov_m_lab  = factor(format(nov_m,  "%b"),  levels = month_levels),
+    stat_m_lab = factor(format(stat_m, "%b"),  levels = month_levels)
+  ) |>
+  group_by(insp_m_lab, nov_m_lab, stat_m_lab, Class) |>
+  summarise(n = n(), .groups = "drop")
+
+
+# plot
+ggplot(viol_flow_2024,
+       aes(axis1 = insp_m_lab, axis2 = nov_m_lab, axis3 = stat_m_lab, y = n)) +
+  geom_alluvium(aes(fill = Class),
+                width = 0.3, alpha = 0.9) +   # softer, smoother ribbons
+  geom_stratum(aes(fill = Class),
+               width = 0.3, alpha = 0.2) +
+  geom_text(stat = "stratum",
+            aes(label = after_stat(stratum)),
+            size = 3, color = "black") +
+  scale_fill_brewer(type=qual, palette = "Set2") +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Housing Violations Flow in 2024: Inspection → NOV → Status (Sample)",
+    x = "Month in 2024",
+    y = "Number of violations"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title   = element_text(face = "bold", size = 12),
+    legend.title = element_text(face = "bold")
+  )
+
+```
+
+
+
+
+
+We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some nlank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
+
+## Time Series
+
+### Housing Daily
+
+
+
+
+
+```{r}
+housing |>
+  filter(!is.na(inspectiondate_clean)) |>
+  count(inspectiondate_clean) |>
+  ggplot(aes(x = inspectiondate_clean, y = n)) +
+  geom_line(color = "red") +
+  labs(title = "Housing Violations Timeline (daily, Manhattan, 2022-2025)",
+  x = "Inspection date", y = "Count") +
+  theme_minimal()
+```
+
+
+
+
+
+### 311 Daily
+
+
+
+
+
+```{r}
+sr311 |>
+  filter(!is.na(created_clean)) |>
+  count(created_clean) |>
+  ggplot(aes(x = created_clean, y = n)) +
+  geom_line(color = "orange") +
+  labs(title = "311 Requests Timeline (daily, Manhattan, 2022-2025)",
+  x = "Created date", y = "Count") +
+  theme_minimal()
+```
+
+
+
+
+
+### Monthly combined of housing and 311
+
+
+
+
+
+```{r}
+housing_month <- housing |>
+  filter(!is.na(inspectiondate_clean)) |>
+  mutate(month = floor_date(inspectiondate_clean, "month")) |>
+  count(month, name = "HousingCount")
+
+sr311_month <- sr311 |>
+  filter(!is.na(created_clean)) |>
+  mutate(month = floor_date(created_clean, "month")) |>
+  count(month, name = "ComplaintCount")
+
+monthly_combined <- full_join(housing_month, sr311_month, by = "month") |>
+  replace_na(list(HousingCount = 0, ComplaintCount = 0))
+
+monthly_combined |>
+  pivot_longer(cols = c(HousingCount, ComplaintCount), names_to = "Source", values_to = "Count") |>
+  ggplot(aes(x = month, y = Count, color = Source)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 1.5) +
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 month") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(title = "Monthly: Housing Violations vs 311 Complaints (Manhattan)",
+  x = "Month", y = "Count")
+```
+
+
+
+
+
+## Top 15 311 Complaint Types
+
+
+
+
+
+```{r}
+sr311 |>
+  filter(!is.na(Complaint.Type)) |> 
+  count(Complaint.Type) |>
+  slice_max(n, n = 15) |>
+  ggplot(aes(x = reorder(Complaint.Type, n), y = n)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 15 311 Complaints (Manhattan, 3 Years)", x = "", y = "Count") +
+  theme_minimal()
+
+```
+
+
+
+
+
+## Top 20 streets by housing violations
+
+
+
+
+
+```{r}
+housing |>
+filter(!is.na(StreetName)) |>
+count(StreetName) |>
+slice_max(n, n = 20) |>
+ggplot(aes(x = reorder(StreetName, n), y = n)) +
+geom_col(fill = "steelblue") +
+coord_flip() +
+labs(title = "Top 20 Manhattan Streets by Housing Violations (2023-2025)",
+x = "Street", y = "Count") +
+theme_minimal()
+```
+
+
+
+
+
+## Top 20 ZIPs for 311
+
+
+
+
+
+```{r}
+sr311 |>
+filter(!is.na(Incident.Zip)) |>
+count(Incident.Zip) |>
+slice_max(n, n = 20) |>
+ggplot(aes(x = reorder(Incident.Zip, n), y = n)) +
+geom_col(fill = "purple") +
+coord_flip() +
+labs(title = "Top 20 ZIP Codes by 311 Complaints (Manhattan, 2023-2025)",
+x = "ZIP", y = "Count") +
+theme_minimal()
+```
+
+
+
+
+
+## Housing Alluvial: Class -\> Status (3 Years)
+
+
+
+
+
+```{r}
+housing |>
+filter(!is.na(Class), !is.na(CurrentStatusID)) |>
+count(Class, CurrentStatusID) |>
+ggplot(aes(axis1 = Class, axis2 = CurrentStatusID, y = n)) +
+geom_alluvium(aes(fill = Class), width = 0.25) +
+geom_stratum(width = 0.25) +
+geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3) +
+theme_minimal() +
+labs(title = "Housing Violations: Class → Current Status (3 Years)", y = "Count")
+```
+
+
+
+
+
+## Alluvial: Class -\> NOV Type
+
+
+
+
+
+```{r}
+housing |>
+filter(!is.na(Class), !is.na(NovType)) |>
+count(Class, NovType) |>
+ggplot(aes(axis1 = Class, axis2 = NovType, y = n)) +
+geom_alluvium(aes(fill = Class), width = 0.25) +
+geom_stratum(width = 0.25) +
+geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3) +
+theme_minimal() +
+labs(title = "Housing Violations: Class → NOV Type (3 Years)", y = "Count")
+```
+
+
+
+
+
+## Spatial sample plots
+
+
+
+
+
+```{r}
+housing |>
+  filter(!is.na(Longitude) & !is.na(Latitude)) |>
+  slice_sample(n = 5000) |>
+  ggplot(aes(x = Longitude, y = Latitude)) +
+  geom_point(alpha = 0.4, size = 0.6) +
+  theme_minimal() +
+  labs(title = "Housing Violations Locations (sample 5k)", x = "Longitude", y = "Latitude")
+```
+
+```{r}
+sr311 |>
+  filter(!is.na(Longitude) & !is.na(Latitude)) |>
+  slice_sample(n = 5000) |>
+  ggplot(aes(x = Longitude, y = Latitude)) +
+  geom_point(alpha = 0.4, size = 0.6, color = "orange") +
+  theme_minimal() +
+  labs(title = "311 Complaints Locations (sample 5k)", x = "Longitude", y = "Latitude")
+```
+
+
+
+
+
+## Top 15 Housing Classes
+
+
+
+
+
+```{r}
+housing |>
+  filter(!is.na(Class)) |>
+  count(Class) |>
+  slice_max(n, n = 15) |>
+  ggplot(aes(x = reorder(Class, n), y = n)) +
+  geom_col(fill = "darkred") +
+  coord_flip() +
+  labs(title = "Top 15 Housing Violation Classes (Manhattan, 2023-2025)", x = "Class", y = "Count") +
+  theme_minimal()
+
+```
+
+```{r}
+# build paths using the month text columns we created earlier (inspection_month, nov_month, status_month)
+
+viol_path_counts <- housing |>
+select(ViolationID, Class, inspection_month, nov_month, status_month) |>
+
+# require inspection month and at least one later stage (nov or status)
+
+filter(!is.na(inspection_month) & ( !is.na(nov_month) | !is.na(status_month) )) |>
+group_by(inspection_month, nov_month, status_month, Class) |>
+summarise(n = n(), .groups = "drop") |>
+arrange(desc(n))
+
+# Quick view
+
+print(head(viol_path_counts, 8))
+
+# Alluvial with 3 axes (InspectionMonth -> NOVMonth -> StatusMonth)
+
+ggplot(viol_path_counts,
+aes(axis1 = inspection_month, axis2 = nov_month, axis3 = status_month, y = n)) +
+geom_alluvium(aes(fill = Class), width = 0.25, alpha = 0.85) +
+geom_stratum(width = 0.25) +
+geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 2.5) +
+theme_minimal() +
+labs(title = "Housing Violations Flow (Monthly): Inspection → NOV → Final Status",
+x = "Stage (Month Year)", y = "Count") +
+theme(axis.text.x = element_text(size = 9, angle = 45, hjust = 1))
+
+
+
+```
+
+
+
+
+
+# Time series line chart
+
+
+
+
+
+```{r fig.width=8, fig.height=6}
+
+
+set.seed(2025)
+
+# Load data
+housing_2 <- as.data.table(housing)
+  # fread("datasets/Housing_Violations_2022_onwards.csv")
+
+# Convert date and extract time components
+housing_2[, InspectionDate := as.Date(InspectionDate)]
+housing_2[, YearMonth := format(InspectionDate, "%Y-%m")]
+housing_2[, Month := month(InspectionDate)]
+housing_2[, Year := year(InspectionDate)]
+
+# Count violations by month and year
+viol_by_month <- housing_2[, .N, by = .(Year, Month)][order(Year, Month)]
+
+# Create the plot
+ggplot(viol_by_month, aes(x = Month, y = N, color = factor(Year), group = Year)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(breaks = 1:12, 
+                     labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Housing Violations by Month and Year",
+    subtitle = "Manhattan, 2022-2025",
+    x = "Month",
+    y = "Number of Violations",
+    color = "Year"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+
+
+
+
+```
+
+```{r}
+
+# Investigate February 2022
+feb_2022 <- housing_2[Year == 2022 & Month == 2]
+cat("February 2022 violations:", nrow(feb_2022), "\n")
+
+# Check if they're all inspected in Feb or entered in Feb
+summary(feb_2022$InspectionDate)
+summary(feb_2022$ApprovedDate)
+
+
+```
+
+
+
+
+
+Median/Mean inspection date is February 15, 2022 and Most inspections are clustered around Feb 15-16. This is NOT a data error but this appears to be a mass inspection event or systematic sweep by HPD in mid-February 2022.
+
+## Smoothed Temporal View Research Question: What are the overall trends when we smooth out monthly fluctuations?
+
+
+
+
+
+```{r}
+
+
+# Aggregate by quarter for smoother trend
+housing_2[, Quarter := quarter(InspectionDate)]
+housing_2[, YearQuarter := paste0(Year, "-Q", Quarter)]
+
+viol_by_quarter <- housing_2[, .N, by = .(Year, Quarter, YearQuarter)][order(Year, Quarter)]
+
+# Create quarter labels
+viol_by_quarter[, QuarterLabel := paste0(Year, "\nQ", Quarter)]
+
+# Plot
+ggplot(viol_by_quarter, aes(x = factor(YearQuarter, levels = YearQuarter), 
+                              y = N, group = 1)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_point(color = "steelblue", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Housing Violations by Quarter",
+    subtitle = "Manhattan, 2022-2025 (smoothed trend)",
+    x = "Quarter",
+    y = "Number of Violations"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+
+
+```
+
+
+
+
+
+## What Types of Violations Are Most Common? Research Question: What are the most common housing violations that tenants and inspectors encounter?
+
+## Violation Severity and Status Research Question: What types of violations are most common, and how seriously are they being addressed?
+
+
+
+
+
+```{r fig.width=8, fig.height=6}
+
+# === GRAPH 3A: Violation Class Distribution ===
+# Class definitions: A=Non-Hazardous, B=Hazardous, C=Immediately Hazardous, I=Failure to Register
+
+class_data <- housing_2[, .N, by=Class][order(-N)]
+
+# Add descriptive labels
+class_data[, ClassLabel := fcase(
+  Class == "A", "Class A: Non-Hazardous",
+  Class == "B", "Class B: Hazardous",
+  Class == "C", "Class C: Immediately Hazardous",
+  Class == "I", "Class I: Failure to Register",
+  default = Class
+)]
+
+ggplot(class_data, aes(x = reorder(ClassLabel, N), y = N, fill = Class)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::comma(N)), hjust = -0.1, size = 5) +
+  coord_flip() +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Housing Violations by Severity Class",
+    subtitle = "Manhattan, 2022-2025",
+    x = "Violation Class",
+    y = "Number of Violations",
+    caption = "Class A: Non-hazardous | Class B: Hazardous | Class C: Immediately Hazardous"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "none"
+  )
+
+# === GRAPH 3B: Rent-Impairing Violations ===
+
+rent_data <- housing_2[, .N, by=RentImpairing]
+rent_data[, Label := ifelse(RentImpairing == "Y", 
+                             "Rent-Impairing\n(affects habitability)", 
+                             "Non-Rent-Impairing")]
+
+ggplot(rent_data, aes(x = Label, y = N, fill = RentImpairing)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(scales::comma(N), "\n(", 
+                                round(N/sum(N)*100, 1), "%)")), 
+            vjust = -0.5, size = 5) +
+  scale_fill_manual(values = c("N" = "steelblue", "Y" = "darkred")) +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Rent-Impairing vs Non-Rent-Impairing Violations",
+    subtitle = "Manhattan, 2022-2025",
+    x = "",
+    y = "Number of Violations"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "none"
+  )
+
+
+
+
+```
+
+```{r}
+
+#| fig-height: 7
+
+housing_dt <- housing_2
+sr311_dt   <- as.data.table(sr311)
+
+housing_dt[, BBL := as.character(BBL)]
+sr311_dt[,  BBL := as.character(BBL)]
+
+viol_severity <- housing_dt[
+  !is.na(BBL) & BBL != "",
+  .(
+    ViolationCount = .N,
+    ClassC         = sum(Class == "C"),
+    RentImp        = sum(RentImpairing == "Y")
+  ),
+  by = BBL
+]
+
+viol_severity[, Pct_ClassC  := ClassC  / ViolationCount]
+viol_severity[, Pct_RentImp := RentImp / ViolationCount]
+
+complaints_by_building <- sr311_dt[
+  !is.na(BBL) & BBL != "",
+  .(ComplaintCount = .N),
+  by = BBL
+]
+
+bldg_pcp <- merge(
+  viol_severity,
+  complaints_by_building,
+  by = "BBL",
+  all.x = TRUE
+)
+bldg_pcp[is.na(ComplaintCount), ComplaintCount := 0]
+
+bldg_pcp_filt <- bldg_pcp[
+  ViolationCount >= 20 | ComplaintCount >= 50
+]
+
+pcp_df <- as.data.frame(bldg_pcp_filt[, .(
+  ViolationCount = as.numeric(ViolationCount),
+  ComplaintCount = as.numeric(ComplaintCount),
+  Pct_ClassC     = as.numeric(Pct_ClassC),
+  Pct_RentImp    = as.numeric(Pct_RentImp)
+)])
+
+set.seed(2025)
+
+# Sample 300 buildings
+pcp_sample <- pcp_df[sample(nrow(pcp_df), 300), ]
+
+# Create severity groups based on Class C share
+pcp_sample$SeverityGroup <- cut(
+  pcp_sample$Pct_ClassC,
+  breaks = c(-Inf, 0.2, 0.5, Inf),
+  labels = c("Low C share", "Medium C share", "High C share")
+)
+
+ggparcoord(
+  data        = pcp_sample,
+  columns     = 1:4,
+  groupColumn = "SeverityGroup",
+  scale       = "uniminmax",
+  alphaLines  = 0.4,
+  showPoints  = FALSE
+) +
+  scale_color_brewer(palette = "Set1") +
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Parallel Coordinates: Sample of Buildings",
+    x = "Variables",
+    y = "Scaled Value",
+    color = "Class C share"
+  )
+
+```
+
+
+
+
+
+## Save cleaned RDS as backups
+
+
+
+
+
+```{r}
+saveRDS(housing, file = "housing_manhattan_3years_clean.rds")
+saveRDS(sr311,   file = "sr311_manhattan_3years_clean.rds")
+```
+
