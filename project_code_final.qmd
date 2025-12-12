@@ -1,5 +1,5 @@
 ---
-title: "NYC Building Violation Analysis EDAV Project"
+title: "NYC Building Violation Analysis"
 author: "Shreya Shetty (svs2148) & Shruti Shetty (ss7592)"
 editor: visual
 execute:
@@ -29,6 +29,7 @@ library(tidyverse)
 library(forcats)
 library(stringr)
 library(redav)
+library(GGally)
 ```
 
 ## Loading Housing Violations and 311 Complaints Datasets
@@ -333,6 +334,9 @@ sr311 |>
 
 ```
 
+Here, manual categorization logic we applied successfully maps unstructured text descriptions (NOVDescriptions) in Housing Violations dataset into unified high-level categories which enables a direct one-to-one comparison between both. We also normalized the categories in 311 Complaints dataset since there were multiple for the same category, ege. there were 2 types "HEAT/HOT WATER" and "Heat/Hot Water" which were merged into 1.
+
+
 ## Save cleaned CSV copies for reproducibility
 
 ```{r}
@@ -343,7 +347,7 @@ write.csv(sr311,   "datasets/sr311_manhattan_3years_clean.csv", row.names = FALS
 ## CATEGORY COMPARISON: Housing vs 311
 
 ```{r}
-
+#| fig-height: 7
 comparison_categories <- c(
   "HEAT/HOT WATER", "PLUMBING", "PAINT/PLASTER",
   "WATER LEAK", "ELEVATOR", "MOLD", "PEST/SANITATION"
@@ -375,7 +379,7 @@ ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
   geom_bar(stat = "identity", position = "dodge") +
   geom_text(aes(label = scales::comma(Count)),
             position = position_dodge(width = 0.9),
-            vjust = -0.5, size = 4) +
+            vjust = -0.5, size = 3) +
   scale_fill_manual(values = c(
     "Housing Violations" = "purple",
     "311 Complaints"     = "pink"
@@ -553,16 +557,16 @@ missing_summary_311
 ## MISSING VALUE HEATMAPS
 
 ```{r}
-
+#| fig-height: 7
 # Simple aggregated missing plot
-plot_missing(housing, percent = TRUE, num_char = 5, max_cols = 10)  
-plot_missing(sr311, percent = TRUE, num_char = 5, max_cols = 10) 
+plot_missing(housing, percent = TRUE, num_char = 3, max_cols = 10)  
+plot_missing(sr311, percent = TRUE, num_char = 3, max_cols = 10) 
 
 
 ```
 
 ```{r}
-
+#| fig-height: 10
 library(redav)
 
 # ========== HOUSING VIOLATIONS - FIXED ==========
@@ -1122,6 +1126,85 @@ ggplot(rent_data, aes(x = Label, y = N, fill = RentImpairing)) +
 
 
 
+
+```
+
+```{r}
+
+#| fig-height: 7
+
+housing_dt <- housing_2
+sr311_dt   <- as.data.table(sr311)
+
+housing_dt[, BBL := as.character(BBL)]
+sr311_dt[,  BBL := as.character(BBL)]
+
+viol_severity <- housing_dt[
+  !is.na(BBL) & BBL != "",
+  .(
+    ViolationCount = .N,
+    ClassC         = sum(Class == "C"),
+    RentImp        = sum(RentImpairing == "Y")
+  ),
+  by = BBL
+]
+
+viol_severity[, Pct_ClassC  := ClassC  / ViolationCount]
+viol_severity[, Pct_RentImp := RentImp / ViolationCount]
+
+complaints_by_building <- sr311_dt[
+  !is.na(BBL) & BBL != "",
+  .(ComplaintCount = .N),
+  by = BBL
+]
+
+bldg_pcp <- merge(
+  viol_severity,
+  complaints_by_building,
+  by = "BBL",
+  all.x = TRUE
+)
+bldg_pcp[is.na(ComplaintCount), ComplaintCount := 0]
+
+bldg_pcp_filt <- bldg_pcp[
+  ViolationCount >= 20 | ComplaintCount >= 50
+]
+
+pcp_df <- as.data.frame(bldg_pcp_filt[, .(
+  ViolationCount = as.numeric(ViolationCount),
+  ComplaintCount = as.numeric(ComplaintCount),
+  Pct_ClassC     = as.numeric(Pct_ClassC),
+  Pct_RentImp    = as.numeric(Pct_RentImp)
+)])
+
+set.seed(2025)
+
+# Sample 300 buildings
+pcp_sample <- pcp_df[sample(nrow(pcp_df), 300), ]
+
+# Create severity groups based on Class C share
+pcp_sample$SeverityGroup <- cut(
+  pcp_sample$Pct_ClassC,
+  breaks = c(-Inf, 0.2, 0.5, Inf),
+  labels = c("Low C share", "Medium C share", "High C share")
+)
+
+ggparcoord(
+  data        = pcp_sample,
+  columns     = 1:4,
+  groupColumn = "SeverityGroup",
+  scale       = "uniminmax",
+  alphaLines  = 0.4,
+  showPoints  = FALSE
+) +
+  scale_color_brewer(palette = "Set1") +
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Parallel Coordinates: Sample of Buildings",
+    x = "Variables",
+    y = "Scaled Value",
+    color = "Class C share"
+  )
 
 ```
 
