@@ -19,6 +19,7 @@ book:
   chapters:
     - index.qmd
     - data.qmd
+    - project_code_final.qmd
     - results.qmd
     - conclusion.qmd
 

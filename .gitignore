@@ -2,5 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-
+project3.qmd
+project_code_intial.qmd
+/datasets
 /.quarto/
