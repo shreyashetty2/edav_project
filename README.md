@@ -1,6 +1,24 @@
-This repo contains a [Quarto book](https://quarto.org/docs/books/) template for the EDAV final project.
 
-### Render the book (RStudio)
+
+## README
+
+This project analyzes housing maintenance code violations from HPD and housing-related 311 service requests for Manhattan between 2022–2025 to understand where, when, and how serious housing problems are for tenants. The code, data-processing steps, and results are organized as a Quarto website and rendered to the docs/ folder for deployment via GitHub Pages.
+
+## *Repository structure*
+- [ ] `index.qmd`: Project introduction, motivation, research questions, brief overview of the two NYC Open Data sources, and a short nontechnical description of why comparing 311 complaints to Housing violations matters for renters and policy.
+
+- [ ] `data.qmd`: Data description and cleaning. Explains the original HPD violation table and 311 service request table, Manhattan-only filtering, date parsing with mixed formats, manual mapping of descriptive text into unified categories (e.g., HEAT/HOT WATER, PLUMBING, PEST/SANITATION), and basic missingness patterns. Includes summary tables of key variables and missing values, plus justification for dropping or recoding some fields.
+
+- [ ] `project_code_final.qmd`: Main analysis and results. Contains all category-comparison plots, quarterly and monthly time‑series graphs, the 2024 violation flow alluvial, building-level parallel coordinates, spatial samples, and severity/rent‑impairing summaries, with text explaining each figure. This file is the core of the analytical workflow.
+
+- [ ] `conclusion.qmd`: High-level interpretation of the findings, limitations (e.g., potential batch‑loading artifacts, partial coverage for late 2025, unobserved informal complaints), and ideas for future work such as richer spatial models or linking to building registration data.
+
+- [ ] `docs/`: Rendered HTML for all .qmd files plus site assets are saved here. This folder is the Quarto output directory configured in _quarto.yml for GitHub Pages deployment.
+
+- [ ] `_quarto.yml`: Site configuration. Defines the project as a website, lists the pages (index.qmd, data.qmd, project_code_final.qmd, conclusion.qmd), sets the output directory to docs/, and controls shared options such as default figure sizes and theme.
+
+
+## Render the book (RStudio)
 
 - [ ] 1. If you haven't already, click "Help" "Check for Updates" to make sure you have the latest version of RStudio (and thus have Quarto installed.)
 
@@ -12,17 +30,4 @@ This repo contains a [Quarto book](https://quarto.org/docs/books/) template for 
 
 (You will need to repeat steps 2 and 4 every time you wish to update the book on GitHub Pages.)
 
-### Update README (GitHub or RStudio)
-
-- [ ] 1. Delete the content of this **README** and add a short description of your project in its place. If you're working locally, be sure to commit and push the changes to GitHub.
-
-### Optional
-
-- [ ] 1. Choose a theme from [https://bootswatch.com/](https://bootswatch.com/) and replace "cosmo" in `_quarto.yml` with your prefered theme.
-
-### Additional features
-
-Please consult the official guide to **quarto** book websites: [https://quarto.org/docs/books/](https://quarto.org/docs/books/)
-
-
-
+> You will need to download the raw CSV datasets from the NYC Open HPD website whose links are provided in data decription, and save it in `datasets/` folder to run the project locally.
