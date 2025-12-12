@@ -1,10 +1,8 @@
-
-
 ## NYC Housing Violation and Complaints Analysis
 
 This project analyzes housing maintenance code violations from HPD and housing-related 311 service requests for Manhattan between 2022–2025 to understand where, when, and how serious housing problems are for tenants. The code, data-processing steps, and results are organized as a Quarto website and rendered to the docs/ folder for deployment via GitHub Pages.
 
-## Repository structure
+## Repository Structure
 - [ ] `index.qmd`: Project introduction, motivation, research questions, brief overview of the two NYC Open Data sources, and a short nontechnical description of why comparing 311 complaints to Housing violations matters for renters and policy.
 
 - [ ] `data.qmd`: Data description and cleaning. Explains the original HPD violation table and 311 service request table, Manhattan-only filtering, date parsing with mixed formats, manual mapping of descriptive text into unified categories (e.g., HEAT/HOT WATER, PLUMBING, PEST/SANITATION), and basic missingness patterns. Includes summary tables of key variables and missing values, plus justification for dropping or recoding some fields.
