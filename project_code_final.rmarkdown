@@ -12,7 +12,13 @@ format:
     embed-resources: true
 ---
 
+
+
+
 ## Loading Libraries
+
+
+
 
 ```{r}
 # Libraries
@@ -32,7 +38,13 @@ library(redav)
 library(GGally)
 ```
 
+
+
+
 ## Loading Housing Violations and 311 Complaints Datasets
+
+
+
 
 ```{r}
 # ========== HOUSING VIOLATIONS ==========
@@ -43,9 +55,15 @@ sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Fi
 
 ```
 
+
+
+
 ## Formatting dates and making sure loaded data has only Manhattan Borough entries
 
 Here, we created a robust set of parse orders for mixed formats in both our datasets. We created cleaned date columns while keep original columns untouched. Also, we added new columns with month-year (Month name + Year) extracted which will be used for alluvial stacks later on
+
+
+
 
 ```{r}
 # VALID DATE ORDERS
@@ -113,9 +131,15 @@ nrow(sr311)
 
 ```
 
+
+
+
 The date columns have been parsed properly and as we can see the both raw data we downloaded, only had data from the Manhattan borough since before and after filtering the number of rows remain same for both datastes i.e. 589005 rows in Housing Violations dataset and 425248 rows in 311 requests dataset.
 
 ## Housing violation decription column data cleaning
+
+
+
 
 ```{r}
 ## Housing violation description column data cleaning
@@ -255,16 +279,28 @@ sr311 |>
 
 ```
 
+
+
+
 Here, manual categorization logic we applied successfully maps unstructured text descriptions (NOVDescriptions) in Housing Violations dataset into unified high-level categories which enables a direct one-to-one comparison between both. We also normalized the categories in 311 Complaints dataset since there were multiple for the same category, ege. there were 2 types "HEAT/HOT WATER" and "Heat/Hot Water" which were merged into 1.
 
 ## Save cleaned CSV copies for reproducibility
+
+
+
 
 ```{r}
 write.csv(housing, "datasets/housing_manhattan_3years_clean.csv", row.names = FALSE)
 write.csv(sr311,   "datasets/sr311_manhattan_3years_clean.csv", row.names = FALSE)
 ```
 
+
+
+
 ## CATEGORY COMPARISON: Housing vs 311
+
+
+
 
 ```{r}
 #| fig-height: 7
@@ -323,9 +359,15 @@ ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
 
 ```
 
+
+
+
 There is a substantial disparity in volume for the "HEAT/HOT WATER" category in violations vs complaints, where the number of 311 Service Requests is significantly higher than the count of official Housing violations issued for the same. Hence, we can conclude that while tenant complaints regarding heating are very very frequent, quite a smaller proportion result in confirmed enforcement actions by management. In other categories, the difference is relatively small. In case of Paint/Plaster and Pests, there is much higher number of building violation entries which shows that probably regular building inspections is conducted for those and hence less direct 311 complaints. Out of all top 7 identified categories overlapping in both the datasets, Heat/Hot Water is the highest and Mold is the lowest complaint type.
 
 ## 3-year per-quarter faceted plots
+
+
+
 
 ```{r}
 #| fig-height: 7
@@ -422,9 +464,15 @@ ggplot(sr311_quarter_lines_focus,
 
 ```
 
+
+
+
 Across quarters, HEAT/HOT WATER 311 complaints and housing violations both show a clear seasonal pattern. They spike in Q1, drop sharply in Q2 and Q3 for all 3 years, and rise again Q4 matching winter heating needs. For PLUMBING, PAINT/PLASTER, PEST/SANITATION, WATER LEAK, ELEVATOR, and MOLD, housing violations counts change over the quarters (most show a local peak around Q3), but patterns are less sharp and not perfectly identical so they don't show a single clear seasonal shape like HEAT/HOT WATER does. Pest and sanitation 311 complaints peak in Q3 in all 3 years, which suggests these problems are most common in late summer, which is also consistent with warmer weather since heat and humidity make it easier for rodents, roaches, and insects to spread, and garbage issues can get worse when it’s so hot. But it's not as strong or as perfectly consistent across all years. For the other categories for 311 complaints, the quarter‑to‑quarter changes within each panel are relatively small and do not follow a clear, repeated seasonal shape across years.
 
 ## Housing Violation Monthly Transition Alluvial for 2024 (for a small sample size)
+
+
+
 
 ```{r}
 # ---- Housing Violation 2024 Monthly Transition Alluvial ----
@@ -479,11 +527,17 @@ ggplot(viol_flow_2024,
 
 ```
 
+
+
+
 We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV (notivr of violation) month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some blank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
 
 ## Time Series
 
 ### Housing Daily
+
+
+
 
 ```{r}
 housing |>
@@ -496,7 +550,13 @@ housing |>
   theme_minimal()
 ```
 
+
+
+
 ### 311 Daily
+
+
+
 
 ```{r}
 sr311 |>
@@ -509,7 +569,13 @@ sr311 |>
   theme_minimal()
 ```
 
+
+
+
 ### Monthly combined of housing and 311
+
+
+
 
 ```{r}
 housing_month <- housing |>
@@ -540,7 +606,13 @@ monthly_combined |>
 
 
 
+
+
+
 ## Top 15 311 Complaint Types
+
+
+
 
 ```{r}
 sr311 |>
@@ -555,7 +627,13 @@ sr311 |>
 
 ```
 
+
+
+
 ## Top 20 streets by housing violations
+
+
+
 
 ```{r}
 housing |>
@@ -570,7 +648,13 @@ x = "Street", y = "Count") +
 theme_minimal()
 ```
 
+
+
+
 ## Top 20 ZIPs for 311
+
+
+
 
 ```{r}
 sr311 |>
@@ -585,9 +669,15 @@ x = "ZIP", y = "Count") +
 theme_minimal()
 ```
 
+
+
+
 ## Spatial sample plots
 
 ### Housing Violations
+
+
+
 
 ```{r}
 housing |>
@@ -599,7 +689,13 @@ housing |>
   labs(title = "Housing Violations Locations (sample 5k)", x = "Longitude", y = "Latitude")
 ```
 
+
+
+
 ### 311 Complaints
+
+
+
 
 ```{r}
 sr311 |>
@@ -611,7 +707,13 @@ sr311 |>
   labs(title = "311 Complaints Locations (sample 5k)", x = "Longitude", y = "Latitude")
 ```
 
+
+
+
 ## Top 15 Housing Classes
+
+
+
 
 ```{r}
 housing |>
@@ -626,7 +728,13 @@ housing |>
 
 ```
 
+
+
+
 # Time series line chart
+
+
+
 
 ```{r fig.width=8, fig.height=6}
 
@@ -685,9 +793,15 @@ summary(feb_2022$ApprovedDate)
 
 ```
 
+
+
+
 Median/Mean inspection date is February 15, 2022 and Most inspections are clustered around Feb 15-16. This is NOT a data error but this appears to be a mass inspection event or systematic sweep by HPD in mid-February 2022.
 
 ## Smoothed Temporal View Research Question: What are the overall trends when we smooth out monthly fluctuations?
+
+
+
 
 ```{r}
 
@@ -723,9 +837,15 @@ ggplot(viol_by_quarter, aes(x = factor(YearQuarter, levels = YearQuarter),
 
 ```
 
+
+
+
 ## What Types of Violations Are Most Common? Research Question: What are the most common housing violations that tenants and inspectors encounter?
 
 ## Violation Severity and Status Research Question: What types of violations are most common, and how seriously are they being addressed?
+
+
+
 
 ```{r fig.width=8, fig.height=6}
 
@@ -871,9 +991,16 @@ ggparcoord(
 
 ```
 
+
+
+
 ## Save cleaned RDS as backups
+
+
+
 
 ```{r}
 saveRDS(housing, file = "housing_manhattan_3years_clean.rds")
 saveRDS(sr311,   file = "sr311_manhattan_3years_clean.rds")
 ```
+
