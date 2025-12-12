@@ -11,7 +11,7 @@ book:
     - Shreya Vishwanath Shetty (svs2148)
     - Shruti Vishwanath Shetty (ss7592)
   repo-url: https://github.com/shreyashetty2/edav_project
-  date: 2025-12-11
+  date: today
   page-footer:
     right: |
       This book was built with <a href="https://quarto.org/">Quarto</a>.
@@ -20,7 +20,7 @@ book:
     - index.qmd
     - data.qmd
     - project_code_final.qmd
-    # - results.qmd
+    # - results.qmd ## Not needed
     - conclusion.qmd
 
 format:
