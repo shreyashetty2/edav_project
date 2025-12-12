@@ -1,1 +1,19 @@
 # Conclusion
+
+## What the data says about Manhattan housing problems:
+
+Across 3 years of data from 2022-25, tenant complaints to 311 service and official housing violations records in Manhattan basically have the same core issues overall and most of them are from the same regions as well. The biggest problem shared in both the dataset is Heat and hot water and 311 service receives way too many heating complaints than any other category, but only comparatively smaller fraction of these calls end up being recorded in HPD violations, which suggest not every complaint leads to enforcement by the management/city.
+
+## Where and when problems are concentrated:
+
+The top problem blocks, streets, and ZIP codes are almost identical across the two systems, with corridors such as Broadway, St Nicholas Avenue, and ZIP codes 10031–10033 and 10027 appearing at the top of both lists. Spatial samples of geocoded points show that complaint and violation “hot spots” trace the same bands of longitude and latitude, meaning buildings that draw a lot of 311 calls also tend to accumulate many violations in the official records.
+
+Time‑series views show different levels of structure depending on scale. At the daily level, both datasets are very noisy, with a few extreme spikes for violations that look like one‑off batch events rather than a true trend, while aggregating to months and quarters reveals clearer patterns: 311 heating complaints and related violations reliably peak in the winter and drop in the summer, but other categories and overall violation counts fluctuate within a fairly stable band with no strong long‑run upward or downward trend.
+
+## How serious the housing violations are:
+
+Looking at severity codes and levels, most housing violations in Manhattan are not minor problems because hazardous Class B and immediately hazardous Class C together account for a lot more than half the records, with Class B alone having ~238,000 and Class C having ~185,000 cases during 2022–2025. Although, only ~8 percent of violations are explicitly marked as rent‑impairing—conditions serious enough to threaten basic habitability, our building‑level analysis shows that buildings/regions with higher share of Class C violations often tend to have higher share of rent‑impairing problems. This basically mean some buildings have a highly disproportionate amount concentrated with most severe issues.
+
+## How individual buildings behave:
+
+Our building‑level flow view for 2024 shows how individual violations move from inspection to NOV to final status within the year. In most cases, progress is within neighboring months rather than being stalling for a long time, but the pipeline is dominated by Class B and C violations, while Class I (registration failures) and Class A (least serious) form much thinner streams. Also, our parallel‑coordinates plot of high‑activity buildings which compares total violations, 311 complaints, share of Class C violations, and share that are rent‑impairing, showed that the only strong multivariate signal is in severity i.e. buildings with a higher Class C share also show higher rent‑impairing shares, while total complaints and violations overlap heavily across groups. This proves that what distinguishes the “worst” kind of buildings is not just how many issues they have, but how serious those issues are and whether they are being solved in a timely manner.
