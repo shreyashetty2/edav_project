@@ -77,8 +77,8 @@ summary(sr311_raw)
 
 # Use tidyverse counting (no data.table .N)
 
-housing_copy <- housing
-sr311_copy <- sr311
+housing_copy <- housing_raw
+sr311_copy <- sr311_raw
 
 # Housing Violations - Top 10 Current Status (showing top 10 since there are many unique values)
 

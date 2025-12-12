@@ -30,7 +30,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-search/fuse.min.js"></script>
 <script src="site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="./">
-<link href="./results.html" rel="next">
+<link href="./project_code_final.html" rel="next">
 <link href="./index.html" rel="prev">
 <script src="site_libs/quarto-html/quarto.js"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
@@ -123,14 +123,20 @@ ul.task-list li input[type="checkbox"] {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
+  <a href="./project_code_final.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">NYC Building Violation Analysis EDAV Project</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
   <a href="./results.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results</span></span></a>
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Results</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
   <a href="./conclusion.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Conclusion</span></span></a>
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Conclusion</span></span></a>
   </div>
 </li>
     </ul>
@@ -145,8 +151,6 @@ ul.task-list li input[type="checkbox"] {
   <ul>
   <li><a href="#dataset-1" id="toc-dataset-1" class="nav-link active" data-scroll-target="#dataset-1"><span class="header-section-number">2.0.1</span> Dataset 1</a></li>
   <li><a href="#dataset-2" id="toc-dataset-2" class="nav-link" data-scroll-target="#dataset-2"><span class="header-section-number">2.0.2</span> Dataset 2</a></li>
-  <li><a href="#dataset-3" id="toc-dataset-3" class="nav-link" data-scroll-target="#dataset-3"><span class="header-section-number">2.0.3</span> Dataset 3</a></li>
-  <li><a href="#dataset-4" id="toc-dataset-4" class="nav-link" data-scroll-target="#dataset-4"><span class="header-section-number">2.0.4</span> Dataset 4</a></li>
   <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description"><span class="header-section-number">2.1</span> Description</a></li>
   <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.2</span> Missing value analysis</a></li>
   </ul>
@@ -182,16 +186,6 @@ The data is provided from the Department of Housing Preservation and Development
 </section>
 <section id="dataset-2" class="level3" data-number="2.0.2">
 <h3 data-number="2.0.2" class="anchored" data-anchor-id="dataset-2"><span class="header-section-number">2.0.2</span> Dataset 2</h3>
-<p><strong>Link:</strong> <a href="https://data.cityofnewyork.us/Housing-Development/Open-HPD-Violations/csn4-vhvf/about_data">Open HPD Violations</a><br>
-The data is provided from the Department of Housing Preservation and Development (HPD), and the dataset owner is Jhantma. It is updated monthly. It currently has 2.86M rows and 30 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. The dataset includes columns such as BuildingID, ApprovedDate (Date when violation was approved), BoroID (to identify borough), Apartment (Apartment with violation), StreetCode, Class (Indicator of seriousness of the violations, where A is the least serious and C is the most serious), etc. These violations are issued by HPD inspectors during inspection, often triggered by tenant complaints or proactive enforcement, and data is collected. It provides records of open housing code violations across residential buildings in New York City.</p>
-</section>
-<section id="dataset-3" class="level3" data-number="2.0.3">
-<h3 data-number="2.0.3" class="anchored" data-anchor-id="dataset-3"><span class="header-section-number">2.0.3</span> Dataset 3</h3>
-<p><strong>Link:</strong> <a href="https://data.cityofnewyork.us/Housing-Development/DOB-Permit-Issuance/ipu4-2q9a/about_data">DOB Permit Issuance</a><br>
-The data is provided from the Department of Buildings (DOB), and the dataset owner is NYC OpenData. It is updated daily. It currently has 3.98M rows and 60 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row in this dataset represents the life cycle of one permit for one work type. The row identifier is PERMIT_SI_NO, and some of the other columns include Borough, Zip Code, Bldg Type (1-2-3 Family or Other), Permit Type, Job (Number assigned by DOB to Job Filing), etc. The dataset contains records related to construction permits issued across all five boroughs in New York. These permits are granted for various activities like new building construction, alterations, and demolitions. The data is collected through the DOB’s internal permitting system and reflects applications submitted by property owners, contractors, or developers.</p>
-</section>
-<section id="dataset-4" class="level3" data-number="2.0.4">
-<h3 data-number="2.0.4" class="anchored" data-anchor-id="dataset-4"><span class="header-section-number">2.0.4</span> Dataset 4</h3>
 <p><strong>Link:</strong> <a href="https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data">311 Service Requests from 2010 to Present</a><br>
 The data is provided by 311, and the dataset owner is NYC OpenData. It is updated daily. It currently has 41.5M rows and 41 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row is a 311 Service Request. Currently, the dataset is displaying incorrect values in the “Agency Name” column, and we are supposed to use the “Agency” column in the meantime while the issue is resolved. The row identifier is Unique Key, and some of the other columns include Agency (Acronym of responding City Government Agency), Agency name (full name of responding City Government Agency), Complaint Type, Created Date (Date SR was created), Closed Date (Date SR was closed), city, latitude (Geo based Lat of the incident location), longitude (Geo based Long of the incident location), etc. The dataset contains records of non-emergency service requests submitted by residents via phone, web, or mobile app. These requests include a wide range of issues like noise complaints, housing violations, sanitation problems, and public safety concerns. The data is collected by the city’s 311 system.</p>
 <p><strong>Note:</strong> One common issue in the dataset is the presence of missing or inconsistent values related to location fields and other columns.</p>
@@ -630,8 +624,8 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="./results.html" class="pagination-link" aria-label="Results">
-        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Results</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="./project_code_final.html" class="pagination-link" aria-label="NYC Building Violation Analysis EDAV Project">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">NYC Building Violation Analysis EDAV Project</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
