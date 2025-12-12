@@ -325,6 +325,8 @@ ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
 
 There is a substantial disparity in volume for the "HEAT/HOT WATER" category in violations vs complaints, where the number of 311 Service Requests is significantly higher than the count of official Housing violations issued for the same. Hence, we can conclude that while tenant complaints regarding heating are very very frequent, quite a smaller proportion result in confirmed enforcement actions by management. In other categories, the difference is relatively small. In case of Paint/Plaster and Pests, there is much higher number of building violation entries which shows that probably regular building inspections is conducted for those and hence less direct 311 complaints. Out of all top 7 identified categories overlapping in both the datasets, Heat/Hot Water is the highest and Mold is the lowest complaint type.
 
+
+
 ## 3-year per-quarter faceted plots
 
 ```{r}
@@ -468,7 +470,7 @@ ggplot(viol_flow_2024,
   scale_y_continuous(labels = scales::comma) +
   labs(
     title = "Housing Violations Flow in 2024: Inspection → NOV → Status (Sample)",
-    x = "Month in 2024",
+    x = "Stage (Month in 2024)",
     y = "Number of violations"
   ) +
   theme_minimal(base_size = 12) +
@@ -479,7 +481,7 @@ ggplot(viol_flow_2024,
 
 ```
 
-We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some nlank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
+We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV (notivr of violation) month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some blank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
 
 ## Time Series
 
@@ -582,35 +584,11 @@ x = "ZIP", y = "Count") +
 theme_minimal()
 ```
 
-## Housing Alluvial: Class -\> Status (3 Years)
 
-```{r}
-housing |>
-filter(!is.na(Class), !is.na(CurrentStatusID)) |>
-count(Class, CurrentStatusID) |>
-ggplot(aes(axis1 = Class, axis2 = CurrentStatusID, y = n)) +
-geom_alluvium(aes(fill = Class), width = 0.25) +
-geom_stratum(width = 0.25) +
-geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3) +
-theme_minimal() +
-labs(title = "Housing Violations: Class → Current Status (3 Years)", y = "Count")
-```
-
-## Alluvial: Class -\> NOV Type
-
-```{r}
-housing |>
-filter(!is.na(Class), !is.na(NovType)) |>
-count(Class, NovType) |>
-ggplot(aes(axis1 = Class, axis2 = NovType, y = n)) +
-geom_alluvium(aes(fill = Class), width = 0.25) +
-geom_stratum(width = 0.25) +
-geom_text(stat = "stratum", aes(label = after_stat(stratum)), size = 3) +
-theme_minimal() +
-labs(title = "Housing Violations: Class → NOV Type (3 Years)", y = "Count")
-```
 
 ## Spatial sample plots
+
+### Housing Violations
 
 ```{r}
 housing |>
@@ -622,6 +600,7 @@ housing |>
   labs(title = "Housing Violations Locations (sample 5k)", x = "Longitude", y = "Latitude")
 ```
 
+### 311 Complaints
 ```{r}
 sr311 |>
   filter(!is.na(Longitude) & !is.na(Latitude)) |>
@@ -631,6 +610,7 @@ sr311 |>
   theme_minimal() +
   labs(title = "311 Complaints Locations (sample 5k)", x = "Longitude", y = "Latitude")
 ```
+
 
 ## Top 15 Housing Classes
 
@@ -646,6 +626,7 @@ housing |>
   theme_minimal()
 
 ```
+
 
 ```{r}
 # build paths using the month text columns we created earlier (inspection_month, nov_month, status_month)
