@@ -20,6 +20,40 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -149,9 +183,15 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#dataset-1-description" id="toc-dataset-1-description" class="nav-link active" data-scroll-target="#dataset-1-description"><span class="header-section-number">2.1</span> Dataset 1 Description</a></li>
-  <li><a href="#dataset-2-description" id="toc-dataset-2-description" class="nav-link" data-scroll-target="#dataset-2-description"><span class="header-section-number">2.2</span> Dataset 2 Description</a></li>
-  <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.3</span> Missing value analysis</a></li>
+  <li><a href="#key-distributions-in-dataset" id="toc-key-distributions-in-dataset" class="nav-link active" data-scroll-target="#key-distributions-in-dataset"><span class="header-section-number">2.1</span> Key distributions in Dataset</a></li>
+  <li><a href="#missing-value-analysis" id="toc-missing-value-analysis" class="nav-link" data-scroll-target="#missing-value-analysis"><span class="header-section-number">2.2</span> Missing Value Analysis</a>
+  <ul class="collapse">
+  <li><a href="#missing-data-summary" id="toc-missing-data-summary" class="nav-link" data-scroll-target="#missing-data-summary"><span class="header-section-number">2.2.1</span> Missing Data summary:</a></li>
+  <li><a href="#missing-data-visualizations" id="toc-missing-data-visualizations" class="nav-link" data-scroll-target="#missing-data-visualizations"><span class="header-section-number">2.2.2</span> Missing Data Visualizations</a></li>
+  <li><a href="#missing-data-summary-tables" id="toc-missing-data-summary-tables" class="nav-link" data-scroll-target="#missing-data-summary-tables"><span class="header-section-number">2.2.3</span> MISSING DATA SUMMARY TABLES</a></li>
+  <li><a href="#missing-value-heatmaps" id="toc-missing-value-heatmaps" class="nav-link" data-scroll-target="#missing-value-heatmaps"><span class="header-section-number">2.2.4</span> MISSING VALUE HEATMAPS</a></li>
+  <li><a href="#missing-value-analysis-1" id="toc-missing-value-analysis-1" class="nav-link" data-scroll-target="#missing-value-analysis-1"><span class="header-section-number">2.2.5</span> Missing Value Analysis</a></li>
+  </ul></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/shreyashetty2/edav_project/edit/main/data.qmd" class="toc-action"><i class="bi bi-github"></i>Edit this page</a></li><li><a href="https://github.com/shreyashetty2/edav_project/issues/new" class="toc-action"><i class="bi empty"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -178,21 +218,499 @@ ul.task-list li input[type="checkbox"] {
 
 
 <p>There are 2 dataset links that we will utilize from <a href="https://opendata.cityofnewyork.us/">https://opendata.cityofnewyork.us</a>. It is public data published by New York City agencies and other partners. As per our discussions during proposal approval, we have limited to 2 datasets (earlier we targeted 4) and downloaded filtered data for past 3 years and for Borough “Manhattan”.</p>
-<section id="dataset-1-description" class="level2" data-number="2.1">
-<h2 data-number="2.1" class="anchored" data-anchor-id="dataset-1-description"><span class="header-section-number">2.1</span> Dataset 1 Description</h2>
-<p><strong>Link:</strong> <a href="https://data.cityofnewyork.us/Housing-Development/Housing-Maintenance-Code-Violations/wvxf-dwi5/about_data">Housing Maintenance Code Violations</a><br>
-The data is provided from the Department of Housing Preservation and Development (HPD), and the dataset owner is NYC OpenData. It is updated daily. It currently has 10.4M rows and 41 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row in this dataset contains information about one violation of the New York City Housing Maintenance Code or New York State Multiple Dwelling Law. The row identifier is ViolationID, and some of the other columns include BuildingID, RegistrationID (valid registration information), BoroID (to identify borough), Apartment (Apartment with violation), inspectiondate (Date when the violation was observed), etc. The violations are issued by HPD inspectors during building inspections, which are triggered by tenant complaints, routine checks, etc, and the data is collected.</p>
+<p>The 2 datsets we are making use of from NYC Open Data are</p>
+<ol type="1">
+<li><p>Housing Maintenance Code Violations <strong>Link:</strong> <a href="https://data.cityofnewyork.us/Housing-Development/Housing-Maintenance-Code-Violations/wvxf-dwi5/about_data">Housing Maintenance Code Violations</a></p></li>
+<li><p>311 Service Requests from 2010 to Present <strong>Link:</strong> <a href="https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data">311 Service Requests from 2010 to Present</a></p></li>
+</ol>
+<p>Both the datasets are CSV files in tabular format and they are updated daily. The HPD dataset is published by the Department of Housing Preservation and Development and contains one row per housing code violation, with about 10.4 million rows and 41 columns. It includes things like identifiers (ViolationID, BuildingID, BBL), address and borough, violation class (A/B/C/I), detailed text descriptions, multiple status dates, and basic geography. On the other hand, the 311 dataset is maintained by NYC’s 311 system and has around 41.5 million rows. It has one row per service request and the key fields include a unique request ID, the responding agency, complaint type and descriptor, creation and closure times, and several location fields such as address, ZIP, BBL, and latitude/longitude. We observed that in the 311 documentation that the “Agency Name” column is currently unreliable, so have informed us to use the “Agency” code instead.</p>
+<p>Please note, that the entire data was too huge so we did not make use of it entirely and instead filtered it for analysis. For HPD housing violations, we restrict it to Manhattan from the year 2022 onwards and so the dataset has 589,005 rows and 41 columns. Same goes with 311 requests dataset as we filter it for Manhattan and for the same time period. It now has, 425,248 rows and 42 columns. To make the two of them comparable, we created new categorical variables: in the violations data, we used regular expressions on the free text NOVDescription field to assign each violation to a broad issue type (such as HEAT/HOT WATER, PLUMBING, PAINT/PLASTER, WATER LEAK, DOOR/WINDOW/LOCK, or PEST/SANITATION). And so in 311 data we mapped Complaint Type (and, for pest issues, Complaint Type together with Descriptor) into the same set of issue types.</p>
+<section id="key-distributions-in-dataset" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="key-distributions-in-dataset"><span class="header-section-number">2.1</span> Key distributions in Dataset</h2>
+<p>Additionally, we looked at some of the key distributions in the data to have a better understanding (see below). In HPD violations data, the most common CurrentStatus values are “VIOLATION DISMISSED”, “VIOLATION CLOSED”, and “NOV SENT OUT”, with a long list of more specific statuses such as “FIRST NO ACCESS TO RE-INSPECT VIOLATION” and “NOT COMPLIED WITH.” In the 311 data, housing related complaints are mostly dominated by a few Complaint Type categories like HEAT/HOT WATER, PLUMBING, PAINT/PLASTER, and WATER LEAK.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Libraries</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'lubridate'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    date, intersect, setdiff, union</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(janitor)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'janitor'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    chisq.test, fisher.test</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggalluvial)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(data.table)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'data.table'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:lubridate':
+
+    hour, isoweek, mday, minute, month, quarter, second, wday, week,
+    yday, year</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:dplyr':
+
+    between, first, last</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'readr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following object is masked from 'package:scales':
+
+    col_factor</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ forcats 1.0.1     ✔ stringr 1.6.0
+✔ purrr   1.1.0     ✔ tibble  3.3.0</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ data.table::between() masks dplyr::between()
+✖ readr::col_factor()   masks scales::col_factor()
+✖ purrr::discard()      masks scales::discard()
+✖ dplyr::filter()       masks stats::filter()
+✖ data.table::first()   masks dplyr::first()
+✖ data.table::hour()    masks lubridate::hour()
+✖ data.table::isoweek() masks lubridate::isoweek()
+✖ dplyr::lag()          masks stats::lag()
+✖ data.table::last()    masks dplyr::last()
+✖ data.table::mday()    masks lubridate::mday()
+✖ data.table::minute()  masks lubridate::minute()
+✖ data.table::month()   masks lubridate::month()
+✖ data.table::quarter() masks lubridate::quarter()
+✖ data.table::second()  masks lubridate::second()
+✖ purrr::transpose()    masks data.table::transpose()
+✖ data.table::wday()    masks lubridate::wday()
+✖ data.table::week()    masks lubridate::week()
+✖ data.table::yday()    masks lubridate::yday()
+✖ data.table::year()    masks lubridate::year()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(forcats)</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(redav)</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== HOUSING VIOLATIONS ==========</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>housing_raw <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/Housing_Violations_2022_onwards.csv"</span>)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== 311 HOUSING COMPLAINTS ==========</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>sr311_raw   <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="st">"/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/311_Housing_Complaints_2022_onwards.csv"</span>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== KEY DISTRIBUTIONS ==========</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Use tidyverse counting (no data.table .N)</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>housing_copy <span class="ot">&lt;-</span> housing_raw</span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>sr311_copy <span class="ot">&lt;-</span> sr311_raw</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Housing Violations - Top 10 Current Status (showing top 10 since there are many unique values)</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>housing_copy <span class="sc">|&gt;</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(CurrentStatus)) <span class="sc">|&gt;</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(CurrentStatus, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>        <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                              CurrentStatus      n
+1                       VIOLATION DISMISSED 197906
+2                          VIOLATION CLOSED 180829
+3                              NOV SENT OUT 112090
+4  FIRST NO ACCESS TO RE- INSPECT VIOLATION  18629
+5                         NOT COMPLIED WITH  17976
+6                         INFO NOV SENT OUT  12927
+7         NOTICE OF ISSUANCE SENT TO TENANT  11160
+8             VIOLATION WILL BE REINSPECTED  10263
+9                              CIV14 MAILED   7244
+10                     DEFECT LETTER ISSUED   5934</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 311 Complaints - Top 10 Complaint Types (showing top 10)</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>sr311_copy <span class="sc">|&gt;</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Complaint.Type)) <span class="sc">|&gt;</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Complaint.Type, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>                  Complaint.Type      n
+1                 HEAT/HOT WATER 229222
+2                       PLUMBING  50637
+3                  PAINT/PLASTER  44624
+4                     WATER LEAK  30190
+5  General Construction/Plumbing  25207
+6        Maintenance or Facility  20202
+7                       Elevator  16588
+8                       Plumbing   2197
+9                       ELEVATOR   1302
+10          Non-Residential Heat   1094</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 311 Complaints - Status distribution</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>sr311_copy <span class="sc">|&gt;</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Status)) <span class="sc">|&gt;</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Status, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>       Status      n
+1      Closed 419047
+2        Open   5152
+3 In Progress    922
+4    Assigned    124
+5 Unspecified      3</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 311 Complaints - Top Agencies</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>sr311_copy <span class="sc">|&gt;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(Agency)) <span class="sc">|&gt;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">count</span>(Agency, <span class="at">sort =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>      <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        <span class="fu">print</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Agency      n
+1    HPD 358603
+2    DOB  43687
+3    DPR  20202
+4  DOHMH   1579
+5    DOE   1064
+6    DEP     99
+7    DOT     14</code></pre>
+</div>
+</div>
 </section>
-<section id="dataset-2-description" class="level2" data-number="2.2">
-<h2 data-number="2.2" class="anchored" data-anchor-id="dataset-2-description"><span class="header-section-number">2.2</span> Dataset 2 Description</h2>
-<p><strong>Link:</strong> <a href="https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data">311 Service Requests from 2010 to Present</a><br>
-The data is provided by 311, and the dataset owner is NYC OpenData. It is updated daily. It currently has 41.5M rows and 41 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row is a 311 Service Request. Currently, the dataset is displaying incorrect values in the “Agency Name” column, and we are supposed to use the “Agency” column in the meantime while the issue is resolved. The row identifier is Unique Key, and some of the other columns include Agency (Acronym of responding City Government Agency), Agency name (full name of responding City Government Agency), Complaint Type, Created Date (Date SR was created), Closed Date (Date SR was closed), city, latitude (Geo based Lat of the incident location), longitude (Geo based Long of the incident location), etc. The dataset contains records of non-emergency service requests submitted by residents via phone, web, or mobile app. These requests include a wide range of issues like noise complaints, housing violations, sanitation problems, and public safety concerns. The data is collected by the city’s 311 system.</p>
-<p><strong>Note:</strong> One common issue in the dataset is the presence of missing or inconsistent values related to location fields and other columns.</p>
+<section id="missing-value-analysis" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.2</span> Missing Value Analysis</h2>
+<section id="missing-data-summary" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="missing-data-summary"><span class="header-section-number">2.2.1</span> Missing Data summary:</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="co"># === HOUSING VIOLATIONS ===</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate missing counts and percentages</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>missing_housing <span class="ot">&lt;-</span> housing_raw <span class="sc">|&gt;</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.)))) <span class="sc">|&gt;</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"column"</span>, <span class="at">values_to =</span> <span class="st">"missing_count"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">total =</span> <span class="fu">nrow</span>(housing_raw), <span class="at">missing_pct =</span> <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> missing_count <span class="sc">/</span> total, <span class="dv">2</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">arrange</span>(<span class="fu">desc</span>(missing_pct))</span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Columns with missing values more than 0%</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">filter</span>(missing_housing, missing_pct <span class="sc">&gt;</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 4
+   column          missing_count  total missing_pct
+   &lt;chr&gt;                   &lt;int&gt;  &lt;int&gt;       &lt;dbl&gt;
+ 1 Story                   77094 589005       13.1 
+ 2 NOVID                   34593 589005        5.87
+ 3 BIN                       305 589005        0.05
+ 4 BBL                       305 589005        0.05
+ 5 Postcode                  147 589005        0.02
+ 6 Latitude                   77 589005        0.01
+ 7 Longitude                  77 589005        0.01
+ 8 CommunityBoard             77 589005        0.01
+ 9 CouncilDistrict            77 589005        0.01
+10 CensusTract                77 589005        0.01</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># === 311 COMPLAINTS ===</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate missing counts and percentages</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>missing_311 <span class="ot">&lt;-</span> sr311_raw <span class="sc">|&gt;</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(<span class="fu">everything</span>(), <span class="sc">~</span> <span class="fu">sum</span>(<span class="fu">is.na</span>(.)))) <span class="sc">|&gt;</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">pivot_longer</span>(<span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"column"</span>, <span class="at">values_to =</span> <span class="st">"missing_count"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(<span class="at">total =</span> <span class="fu">nrow</span>(sr311_raw), <span class="at">missing_pct =</span> <span class="fu">round</span>(<span class="dv">100</span> <span class="sc">*</span> missing_count <span class="sc">/</span> total, <span class="dv">2</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>        <span class="fu">arrange</span>(<span class="fu">desc</span>(missing_pct))</span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Columns with &gt;0% missing</span></span>
+<span id="cb31-11"><a href="#cb31-11" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">filter</span>(missing_311, missing_pct <span class="sc">&gt;</span> <span class="dv">0</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 9 × 4
+  column                   missing_count  total missing_pct
+  &lt;chr&gt;                            &lt;int&gt;  &lt;int&gt;       &lt;dbl&gt;
+1 Due.Date                        425248 425248      100   
+2 Vehicle.Type                    425248 425248      100   
+3 Taxi.Company.Borough            425248 425248      100   
+4 Taxi.Pick.Up.Location           425248 425248      100   
+5 Bridge.Highway.Name             425248 425248      100   
+6 Bridge.Highway.Direction        425248 425248      100   
+7 Road.Ramp                       425248 425248      100   
+8 Bridge.Highway.Segment          425248 425248      100   
+9 BBL                               2302 425248        0.54</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Saving results for visualization</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(missing_housing, <span class="st">"datasets/missing_values_violations.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="fu">write.csv</span>(missing_311, <span class="st">"datasets/missing_values_311.csv"</span>, <span class="at">row.names =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </section>
-<section id="missing-value-analysis" class="level2" data-number="2.3">
-<h2 data-number="2.3" class="anchored" data-anchor-id="missing-value-analysis"><span class="header-section-number">2.3</span> Missing value analysis</h2>
+<section id="missing-data-visualizations" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="missing-data-visualizations"><span class="header-section-number">2.2.2</span> Missing Data Visualizations</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="co"># --------- Visualizations: Missingness bar charts (tidy) ---------</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the saved summaries (if needed) or use objects directly</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>missing_viol_plot <span class="ot">&lt;-</span> missing_housing <span class="sc">|&gt;</span> <span class="fu">filter</span>(missing_pct <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>missing_311_plot  <span class="ot">&lt;-</span> missing_311 <span class="sc">|&gt;</span> <span class="fu">filter</span>(missing_pct <span class="sc">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== GRAPH 1: BAR CHART - HOUSING VIOLATIONS ==========</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(missing_viol_plot, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(column, missing_pct), <span class="at">y =</span> missing_pct)) <span class="sc">+</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Missing Values in Housing Violations Dataset"</span>,</span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">subtitle =</span> <span class="st">"Manhattan, 2022-2025"</span>,</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="st">"Column Name"</span>,</span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"Percentage Missing (%)"</span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">16</span>),</span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>)</span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ========== GRAPH 2: BAR CHART - 311 COMPLAINTS ==========</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(missing_311_plot, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(column, missing_pct), <span class="at">y =</span> missing_pct)) <span class="sc">+</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"coral"</span>) <span class="sc">+</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Missing Values in 311 Housing Complaints Dataset"</span>,</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">subtitle =</span> <span class="st">"Manhattan, 2022-2025"</span>,</span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">x =</span> <span class="st">"Column Name"</span>,</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">y =</span> <span class="st">"Percentage Missing (%)"</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">16</span>),</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">axis.text.y =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">11</span>)</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p2)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="missing-data-summary-tables" class="level3" data-number="2.2.3">
+<h3 data-number="2.2.3" class="anchored" data-anchor-id="missing-data-summary-tables"><span class="header-section-number">2.2.3</span> MISSING DATA SUMMARY TABLES</h3>
+<section id="housing-violations-missingness-summary-table" class="level4" data-number="2.2.3.1">
+<h4 data-number="2.2.3.1" class="anchored" data-anchor-id="housing-violations-missingness-summary-table"><span class="header-section-number">2.2.3.1</span> Housing Violations – Missingness Summary Table</h4>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a>missing_summary_housing <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Metric =</span> <span class="fu">c</span>(</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Total Columns"</span>,</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns &gt; 0% Missing"</span>,</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns &gt; 50% Missing"</span>,</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns == 100% Missing"</span>,</span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns == 0% Missing"</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(missing_housing),</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_housing, missing_pct <span class="sc">&gt;</span> <span class="dv">0</span>)),</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_housing, missing_pct <span class="sc">&gt;</span> <span class="dv">50</span>)),</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_housing, missing_pct <span class="sc">==</span> <span class="dv">100</span>)),</span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_housing, missing_pct <span class="sc">==</span> <span class="dv">0</span>))</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-18"><a href="#cb36-18" aria-hidden="true" tabindex="-1"></a>missing_summary_housing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+  Metric                  Value
+  &lt;chr&gt;                   &lt;int&gt;
+1 Total Columns              41
+2 Columns &gt; 0% Missing       10
+3 Columns &gt; 50% Missing       0
+4 Columns == 100% Missing     0
+5 Columns == 0% Missing      31</code></pre>
+</div>
+</div>
+</section>
+<section id="complaints-missingness-summary-table" class="level4" data-number="2.2.3.2">
+<h4 data-number="2.2.3.2" class="anchored" data-anchor-id="complaints-missingness-summary-table"><span class="header-section-number">2.2.3.2</span> 311 Complaints – Missingness Summary Table</h4>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>missing_summary_311 <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">Metric =</span> <span class="fu">c</span>(</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Total Columns"</span>,</span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns &gt; 0% Missing"</span>,</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns &gt; 50% Missing"</span>,</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns == 100% Missing"</span>,</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Columns == 0% Missing"</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">Value =</span> <span class="fu">c</span>(</span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(missing_311),</span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_311, missing_pct <span class="sc">&gt;</span> <span class="dv">0</span>)),</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_311, missing_pct <span class="sc">&gt;</span> <span class="dv">50</span>)),</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_311, missing_pct <span class="sc">==</span> <span class="dv">100</span>)),</span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">nrow</span>(<span class="fu">filter</span>(missing_311, missing_pct <span class="sc">==</span> <span class="dv">0</span>))</span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>missing_summary_311</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 2
+  Metric                  Value
+  &lt;chr&gt;                   &lt;int&gt;
+1 Total Columns              42
+2 Columns &gt; 0% Missing        9
+3 Columns &gt; 50% Missing       8
+4 Columns == 100% Missing     8
+5 Columns == 0% Missing      33</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="missing-value-heatmaps" class="level3" data-number="2.2.4">
+<h3 data-number="2.2.4" class="anchored" data-anchor-id="missing-value-heatmaps"><span class="header-section-number">2.2.4</span> MISSING VALUE HEATMAPS</h3>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simple aggregated missing plot</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_missing</span>(housing_raw, <span class="at">percent =</span> <span class="cn">TRUE</span>, <span class="at">num_char =</span> <span class="dv">3</span>, <span class="at">max_cols =</span> <span class="dv">10</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale for y is already present.
+Adding another scale for y, which will replace the existing scale.
+Scale for y is already present.
+Adding another scale for y, which will replace the existing scale.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_missing</span>(sr311_raw, <span class="at">percent =</span> <span class="cn">TRUE</span>, <span class="at">num_char =</span> <span class="dv">3</span>, <span class="at">max_cols =</span> <span class="dv">10</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stderr">
+<pre><code>Scale for y is already present.
+Adding another scale for y, which will replace the existing scale.
+Scale for y is already present.
+Adding another scale for y, which will replace the existing scale.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Removed 8 rows containing missing values or values outside the scale range
+(`geom_col()`).</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="data_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="missing-value-analysis-1" class="level3" data-number="2.2.5">
+<h3 data-number="2.2.5" class="anchored" data-anchor-id="missing-value-analysis-1"><span class="header-section-number">2.2.5</span> Missing Value Analysis</h3>
+<p>Housing violations dataset is mostly complete since 31/40 columns contain 0 missing values. The remaining 10 columns have less than 50% missing data which in turn means that even incomplete variables retain significant analytical value. Story and NOVID are the columns with highest missing data (13% and 5.8% respectively) andHence, this dataset is consistent and reliable for majority of fields required for analysis.</p>
+<p>311 service requests dataset has polarized missingness pattern with 33/42 columns fully complete but except 1 (BBL) , the remaining 8 (Due.Date, Vehicle.Type, Taxi.Company.Borough, Taxi.Pick.Up.Location, Bridge.Highway.Name, Bridge.Highway.Direction, Road.Ramp, Bridge.Highway.Segment) are entirely empty. We haven’t used these missing data columns in our analysis. These missing data columns suggest that though most of the complaint data is recorded properly some details (mostly not very improtant) are poorly recorded.</p>
+<p>Commentary: The sharp contrast between both our datasets highlights that the data collection challenges were perhaps diffferent because housing violations data is robust and usable across all dimensions but 311 data contains gaps. The 8 blank columns in the 311 dataset are mostly excluded excluded from our analysis to prevent errors. We have used housing dataset with minimal imputation since it’s properly recorded.</p>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

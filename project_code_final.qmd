@@ -41,78 +41,8 @@ housing_raw <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Fi
 # ========== 311 HOUSING COMPLAINTS ==========
 sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/311_Housing_Complaints_2022_onwards.csv")
 
-
-cat("Housing Violations:", nrow(housing_raw), "rows x", ncol(housing_raw), "columns\n")
-cat("311 Complaints:", nrow(sr311_raw ), "rows x", ncol(sr311_raw ), "columns\n")
-
 ```
 
-## Inspecting data and column names for both the datasets:
-
-### Housing Violations Dataset
-
-```{r}
-head(housing_raw)
-colnames(housing_raw)
-```
-
-```{r}
-summary(housing_raw)
-```
-
-### 311 Complaints dataset
-
-```{r}
-head(sr311_raw)
-colnames(sr311_raw)
-```
-
-```{r}
-summary(sr311_raw)
-```
-
-## Checking Key distributions
-
-```{r}
-# ========== KEY DISTRIBUTIONS ==========
-
-# Use tidyverse counting (no data.table .N)
-
-housing_copy <- housing_raw
-sr311_copy <- sr311_raw
-
-# Housing Violations - Top 10 Current Status (showing top 10 since there are many unique values)
-
-housing_copy |>
-  filter(!is.na(CurrentStatus)) |>
-    count(CurrentStatus, sort = TRUE) |>
-      slice_head(n = 10) |>
-        print()
-
-# 311 Complaints - Top 10 Complaint Types (showing top 10)
-
-sr311_copy |>
-  filter(!is.na(Complaint.Type)) |>
-    count(Complaint.Type, sort = TRUE) |>
-      slice_head(n = 10) |>
-        print()
-
-# 311 Complaints - Status distribution
-
-sr311_copy |>
-  filter(!is.na(Status)) |>
-    count(Status, sort = TRUE) |>
-      print()
-
-# 311 Complaints - Top Agencies
-
-sr311_copy |>
-  filter(!is.na(Agency)) |>
-    count(Agency, sort = TRUE) |>
-      slice_head(n = 10) |>
-        print()
-
-```
 
 ## Formatting dates and making sure loaded data has only Manhattan Borough entries
 
@@ -166,6 +96,9 @@ housing <- housing |>
                           NA_character_)
   )
 
+# Hosuing violations rows
+nrow(housing)
+
 sr311 <- sr311 |>
   mutate(
     created_month = ifelse(!is.na(created_clean),
@@ -176,22 +109,13 @@ sr311 <- sr311 |>
                            NA_character_)
 )
 
-cat("Final Housing rows:", nrow(housing), "\n")
-cat("Final 311 rows:", nrow(sr311), "\n")
+# 311 requests rows updated
+nrow(sr311)
 
 ```
 
 The date columns have been parsed properly and as we can see the both raw data we downloaded, only had data from the Manhattan borough since before and after filtering the number of rows remain same for both datastes i.e. 589005 rows in Housing Violations dataset and 425248 rows in 311 requests dataset.
 
-### Checking 10 rows of data with new date columns included
-
-```{r}
-head(housing,10)
-```
-
-```{r}
-head(sr311,10)
-```
 
 ## Housing violation decription column data cleaning
 
@@ -202,7 +126,6 @@ head(sr311,10)
 head(housing$NOVDescription, 10)
 
 # ========== REFINED CATEGORIZATION ==========
-
 housing <- housing |>
   mutate(
     ViolationCategory = case_when(
@@ -333,9 +256,7 @@ sr311 |>
   print()
 
 ```
-
 Here, manual categorization logic we applied successfully maps unstructured text descriptions (NOVDescriptions) in Housing Violations dataset into unified high-level categories which enables a direct one-to-one comparison between both. We also normalized the categories in 311 Complaints dataset since there were multiple for the same category, ege. there were 2 types "HEAT/HOT WATER" and "Heat/Hot Water" which were merged into 1.
-
 
 ## Save cleaned CSV copies for reproducibility
 
@@ -388,203 +309,26 @@ ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
                      expand = expansion(mult = c(0, 0.15))) +
   labs(
     title = "Violations vs 311 Complaints by Category",
-    subtitle = "Manhattan, 2022–2025 — Comparable Categories Only",
+    subtitle = "Manhattan (Last 3 yrs) Comparable Categories Only",
     x = "Category",
     y = "Count",
     fill = "Source"
   ) +
   theme_minimal(base_size = 16) +
   theme(
-    plot.title = element_text(face = "bold"),
+    plot.title = element_text(face = "bold", size = 17),
+    plot.subtitle = element_text(size = 14),
     axis.text.x = element_text(angle = 45, hjust = 1),
     legend.position = "top"
   )
 
 ```
+There is a substantial disparity in volume for the "HEAT/HOT WATER" category in violations vs complaints, where the number of 311 Service Requests is significantly higher than the count of official Housing violations issued for the same. Hence, we can conclude that while tenant complaints regarding heating are very very frequent, quite a smaller proportion result in confirmed enforcement actions by management. In other categories, the difference is relatively small. In case of Paint/Plaster and Pests, there is much higher number of building violation entries which shows that probably regualar building inspections is conducted for those and hence less direct 311 complaints.
 
-## Missing Data summary:
-
-```{r}
-
-# === HOUSING VIOLATIONS ===
-
-# Calculate missing counts and percentages
-missing_housing <- housing |>
-  summarise(across(everything(), ~ sum(is.na(.)))) |>
-    pivot_longer(everything(), names_to = "column", values_to = "missing_count") |>
-      mutate(total = nrow(housing), missing_pct = round(100 * missing_count / total, 2)) |>
-        arrange(desc(missing_pct))
-
-
-# Top housing missing columns (sample)
-print(head(missing_housing, 20))
-
-# Columns with missing values more than 0%
-print(filter(missing_housing, missing_pct > 0))
-
-# Columns with missing values more than 50%
-print(missing_housing[missing_housing$missing_pct > 50, ])
-
-
-# === 311 COMPLAINTS ===
-
-# Calculate missing counts and percentages
-missing_311 <- sr311 |>
-  summarise(across(everything(), ~ sum(is.na(.)))) |>
-    pivot_longer(everything(), names_to = "column", values_to = "missing_count") |>
-      mutate(total = nrow(sr311), missing_pct = round(100 * missing_count / total, 2)) |>
-        arrange(desc(missing_pct))
-
-
-# Top 311 missing columns (sample)
-print(head(missing_311, 20))
-
-# Columns with >0% missing
-print(filter(missing_311, missing_pct > 0))
-
-# Columns with >50% missing
-print(filter(missing_311, missing_pct > 50))
-
-# Saving results for visualization
-write.csv(missing_housing, "datasets/missing_values_violations.csv", row.names = FALSE)
-write.csv(missing_311, "datasets/missing_values_311.csv", row.names = FALSE)
-
-
-```
-
-### Missing Value Analysis
-
-## Missing Visualizations
-
-```{r}
-# --------- Visualizations: Missingness bar charts (tidy) ---------
-
-# Load the saved summaries (if needed) or use objects directly
-
-missing_viol_plot <- missing_housing |> filter(missing_pct > 0)
-missing_311_plot  <- missing_311 |> filter(missing_pct > 0)
-
-# ========== GRAPH 1: BAR CHART - HOUSING VIOLATIONS ==========
-
-p1 <- ggplot(missing_viol_plot, aes(x = reorder(column, missing_pct), y = missing_pct)) +
-  geom_bar(stat = "identity", fill = "steelblue") +
-  coord_flip() +
-  labs(
-  title = "Missing Values in Housing Violations Dataset",
-  subtitle = "Manhattan, 2022-2025",
-  x = "Column Name",
-  y = "Percentage Missing (%)"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(
-  plot.title = element_text(face = "bold", size = 16),
-  axis.text.y = element_text(size = 11)
-  )
-
-print(p1)
-
-# ========== GRAPH 2: BAR CHART - 311 COMPLAINTS ==========
-
-p2 <- ggplot(missing_311_plot, aes(x = reorder(column, missing_pct), y = missing_pct)) +
-  geom_bar(stat = "identity", fill = "coral") +
-  coord_flip() +
-  labs(
-  title = "Missing Values in 311 Housing Complaints Dataset",
-  subtitle = "Manhattan, 2022-2025",
-  x = "Column Name",
-  y = "Percentage Missing (%)"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(
-  plot.title = element_text(face = "bold", size = 16),
-  axis.text.y = element_text(size = 11)
-  )
-
-print(p2)
-
-```
-
-## MISSING DATA SUMMARY TABLES
-
-### Housing Violations – Missingness Summary Table
-
-```{r}
-
-missing_summary_housing <- tibble(
-  Metric = c(
-  "Total Columns",
-  "Columns > 0% Missing",
-  "Columns > 50% Missing",
-  "Columns == 100% Missing",
-  "Columns == 0% Missing"
-  ),
-  Value = c(
-    nrow(missing_housing),
-    nrow(filter(missing_housing, missing_pct > 0)),
-    nrow(filter(missing_housing, missing_pct > 50)),
-    nrow(filter(missing_housing, missing_pct == 100)),
-    nrow(filter(missing_housing, missing_pct == 0))
-  )
-)
-
-missing_summary_housing
-```
-
-### 311 Complaints – Missingness Summary Table
-
-```{r}
-missing_summary_311 <- tibble(
-  Metric = c(
-  "Total Columns",
-  "Columns > 0% Missing",
-  "Columns > 50% Missing",
-  "Columns == 100% Missing",
-  "Columns == 0% Missing"
-  ),
-  Value = c(
-    nrow(missing_311),
-    nrow(filter(missing_311, missing_pct > 0)),
-    nrow(filter(missing_311, missing_pct > 50)),
-    nrow(filter(missing_311, missing_pct == 100)),
-    nrow(filter(missing_311, missing_pct == 0))
-  )
-)
-
-missing_summary_311
-
-```
-
-## MISSING VALUE HEATMAPS
+## 3-year per-quarter faceted plots
 
 ```{r}
 #| fig-height: 7
-# Simple aggregated missing plot
-plot_missing(housing, percent = TRUE, num_char = 3, max_cols = 10)  
-plot_missing(sr311, percent = TRUE, num_char = 3, max_cols = 10) 
-
-
-```
-
-```{r}
-#| fig-height: 10
-library(redav)
-
-# ========== HOUSING VIOLATIONS - FIXED ==========
-plot_missing(housing,
-             percent = TRUE,
-             num_char = 5, max_cols = 10)  # Shorten column names to 5 characters
-
-# Alternative: Manually create cleaner version
-# First, let's see how many columns we're dealing with
-cat("Number of columns:", ncol(housing))
-
-
-
-```
-
-## 3-year per-quarter faceted plots and combined panel (these come right AFTER the category comparison block)
-
-```{r}
 # ----- HOUSING: QUARTERLY CATEGORY TRENDS (3-LINE-QTRS) -----
 
 housing_quarter_lines <- housing |>
@@ -598,7 +342,20 @@ housing_quarter_lines <- housing |>
           quarter = factor(quarter, levels = c("Q1","Q2","Q3","Q4"))
         )
 
-ggplot(housing_quarter_lines,
+focus_cats <- c(
+  "HEAT/HOT WATER",
+  "PLUMBING",
+  "PAINT/PLASTER",
+  "WATER LEAK",
+  "ELEVATOR",
+  "MOLD",
+  "PEST/SANITATION"
+)
+
+housing_quarter_lines_focus <- housing_quarter_lines |>
+  dplyr::filter(ViolationCategory %in% focus_cats)
+
+ggplot(housing_quarter_lines_focus,
        aes(x = quarter, y = n, color = factor(year), group = year)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2.2) +
@@ -607,116 +364,64 @@ ggplot(housing_quarter_lines,
                                 "2024" = "#457B9D",
                                 "2025" = "#2A9D8F"),
                      name = "Year") +
-  facet_wrap(~ ViolationCategory, scales = "free_y") +
+  facet_wrap(~ ViolationCategory,
+             scales = "free_y",
+             ncol = 2) +    
   theme_minimal(base_size = 14) +
   theme(
-    plot.title = element_text(face = "bold"),
+    plot.title = element_text(face = "bold", size = 17),
     axis.text.x = element_text(angle = 0),
     legend.position = "top"
   ) +
   labs(
-  title = "Housing Violations by Category Across Quarters",
-  subtitle = "Manhattan (2023–2025) • 3-Year Trend",
-  x = "Quarter",
-  y = "Number of Violations"
-)
+    title = "Quarterly Housing Violations by Category",
+    subtitle = "Manhattan (2022–25) • Selected Categories",
+    x = "Quarter",
+    y = "Number of Violations"
+  )
+
 
 # ----- 311: QUARTERLY CATEGORY TRENDS (3-LINE-QTRS) -----
 
 sr311_quarter_lines <- sr311 |>
   filter(!is.na(created_clean)) |>
-    mutate(
-      year = year(created_clean),
-      quarter = paste0("Q", quarter(created_clean))
-    ) |>
-      count(year, quarter, Category) |>
-      mutate(
-        quarter = factor(quarter, levels = c("Q1","Q2","Q3","Q4"))
-      )
+  mutate(
+    year    = year(created_clean),
+    quarter = paste0("Q", quarter(created_clean))
+  ) |>
+  count(year, quarter, Category) |>
+  mutate(
+    quarter = factor(quarter, levels = c("Q1","Q2","Q3","Q4"))
+  )
 
-ggplot(sr311_quarter_lines,
-  aes(x = quarter, y = n, color = factor(year), group = year)) +
+sr311_quarter_lines_focus <- sr311_quarter_lines |>
+  filter(Category %in% focus_cats)
+
+ggplot(sr311_quarter_lines_focus,
+       aes(x = quarter, y = n, color = factor(year), group = year)) +
   geom_line(linewidth = 1.2) +
   geom_point(size = 2.2) +
   scale_y_continuous(labels = scales::comma) +
   scale_color_manual(values = c("2023" = "#E63946",
-  "2024" = "#457B9D",
-  "2025" = "#2A9D8F"),
-  name = "Year") +
-  facet_wrap(~ Category, scales = "free_y") +
+                                "2024" = "#457B9D",
+                                "2025" = "#2A9D8F"),
+                     name = "Year") +
+  facet_wrap(~ Category, scales = "free_y", ncol = 2) +
   theme_minimal(base_size = 14) +
   theme(
-  plot.title = element_text(face = "bold"),
-  axis.text.x = element_text(angle = 0),
-  legend.position = "top"
+    plot.title  = element_text(face = "bold", size = 17),
+    axis.text.x = element_text(angle = 0),
+    legend.position = "top"
   ) +
   labs(
-  title = "311 Housing Complaints by Category Across Quarters",
-  subtitle = "Manhattan (2023–2025) • 3-Year Trend",
-  x = "Quarter",
-  y = "Number of Complaints"
-)
-
-# ----- COMBINED HOUSING vs 311: QUARTERLY CATEGORY TRENDS -----
-
-# Housing quarterly counts
-
-housing_q <- housing |>
-  filter(!is.na(inspectiondate_clean)) |>
-    mutate(
-    year = year(inspectiondate_clean),
-    quarter = paste0("Q", quarter(inspectiondate_clean))
-    ) |>
-      count(year, quarter, ViolationCategory) |>
-        rename(Category = ViolationCategory) |>
-          mutate(Source = "Housing Violations")
-
-# 311 quarterly counts
-
-sr311_q <- sr311 |>
-filter(!is.na(created_clean)) |>
-  mutate(
-    year = year(created_clean),
-    quarter = paste0("Q", quarter(created_clean))
-  ) |>
-    count(year, quarter, Category) |>
-      mutate(Source = "311 Complaints")
-
-# Combine
-
-combined_q <- bind_rows(housing_q, sr311_q) |>
-  mutate(
-    quarter = factor(quarter, levels = c("Q1", "Q2", "Q3", "Q4")),
-    year = factor(year)
-  ) |>
-    filter(Category %in% comparison_categories)  # keep only the 7 categories
-
-ggplot(combined_q,
-  aes(x = quarter, y = n, color = Source, group = Source)) +
-  geom_line(linewidth = 1.2) +
-  geom_point(size = 2) +
-  facet_wrap(~ Category, scales = "free_y") +
-  scale_color_manual(values = c(
-  "Housing Violations" = "#D62828",
-  "311 Complaints" = "#1D3557"
-  )) +
-  scale_y_continuous(labels = scales::comma) +
-  theme_minimal(base_size = 14) +
-  theme(
-  legend.position = "top",
-  plot.title = element_text(face = "bold")
-  ) +
-  labs(
-  title = "Combined Quarterly Trends: Housing Violations vs 311 Complaints",
-  subtitle = "Manhattan (2023–2025) • Faceted by Category",
-  x = "Quarter",
-  y = "Count",
-  color = "Source"
-)
-
-
+    title    = "Quarterly 311 Complaints by Category",
+    subtitle = "Manhattan (2022-25) • Selected Categories",
+    x = "Quarter",
+    y = "Number of Complaints"
+  )
 
 ```
+Across quarters, HEAT/HOT WATER 311 complaints and housing violations both show a clear seasonal pattern. They spike in Q1, drop sharply in Q2 and Q3 for all 3 years, and rise again Q4  matching winter heating needs. For PLUMBING, PAINT/PLASTER, PEST/SANITATION, WATER LEAK, ELEVATOR, and MOLD, housing violations counts change over the quarters (most show a local peak around Q3), but patterns are less sharp and not perfectly identical so they don't show a single clear seasonal shape like HEAT/HOT WATER does. Pest and sanitation 311 complaints peak in Q3 in all 3 years, which suggests these problems are most common in late summer, which is also consistent with warmer weather since heat and humidity make it easier for rodents, roaches, and insects to spread, and garbage issues can get worse when it’s so hot. But it's not as strong or as perfectly consistent across all years. For the other categories for 311 complaints, the quarter‑to‑quarter changes within each panel are relatively small and do not follow a clear, repeated seasonal shape across years.
 
 ## Housing Violation Monthly Transition Alluvial
 
@@ -764,7 +469,7 @@ ggplot(viol_flow,
   ) +
   theme(
     axis.text.x = element_text(size = 8, angle = 45, hjust = 1),
-    plot.title = element_text(face = "bold")
+    plot.title = element_text(face = "bold", size = 8)
   )
 
 ```

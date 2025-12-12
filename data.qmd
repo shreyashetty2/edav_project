@@ -2,17 +2,245 @@
 
 There are 2 dataset links that we will utilize from [https://opendata.cityofnewyork.us](https://opendata.cityofnewyork.us/). It is public data published by New York City agencies and other partners. As per our discussions during proposal approval, we have limited to 2 datasets (earlier we targeted 4) and downloaded filtered data for past 3 years and for Borough "Manhattan".
 
-## Dataset 1 Description
+The 2 datsets we are making use of from NYC Open Data are
+
+1. Housing Maintenance Code Violations
 **Link:** [Housing Maintenance Code Violations](https://data.cityofnewyork.us/Housing-Development/Housing-Maintenance-Code-Violations/wvxf-dwi5/about_data)  
-The data is provided from the Department of Housing Preservation and Development (HPD), and the dataset owner is NYC OpenData. It is updated daily. It currently has 10.4M rows and 41 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row in this dataset contains information about one violation of the New York City Housing Maintenance Code or New York State Multiple Dwelling Law. The row identifier is ViolationID, and some of the other columns include BuildingID, RegistrationID (valid registration information), BoroID (to identify borough), Apartment (Apartment with violation), inspectiondate (Date when the violation was observed), etc. The violations are issued by HPD inspectors during building inspections, which are triggered by tenant complaints, routine checks, etc, and the data is collected.
 
 
-## Dataset 2 Description
+2. 311 Service Requests from 2010 to Present
 **Link:** [311 Service Requests from 2010 to Present](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data)  
-The data is provided by 311, and the dataset owner is NYC OpenData. It is updated daily. It currently has 41.5M rows and 41 columns. The format of the data is CSV in tabular format. It can be downloaded as CSV directly or using the API. Each row is a 311 Service Request. Currently, the dataset is displaying incorrect values in the "Agency Name" column, and we are supposed to use the "Agency" column in the meantime while the issue is resolved. The row identifier is Unique Key, and some of the other columns include Agency (Acronym of responding City Government Agency), Agency name (full name of responding City Government Agency), Complaint Type, Created Date (Date SR was created), Closed Date (Date SR was closed), city, latitude (Geo based Lat of the incident location), longitude (Geo based Long of the incident location), etc. The dataset contains records of non-emergency service requests submitted by residents via phone, web, or mobile app. These requests include a wide range of issues like noise complaints, housing violations, sanitation problems, and public safety concerns. The data is collected by the city’s 311 system.
-
-**Note:** One common issue in the dataset is the presence of missing or inconsistent values related to location fields and other columns. 
 
 
+Both the datasets are CSV files in tabular format and they are updated daily. The HPD dataset is published by the Department of Housing Preservation and Development and contains one row per housing code violation, with about 10.4 million rows and 41 columns. It includes things like identifiers (ViolationID, BuildingID, BBL), address and borough, violation class (A/B/C/I), detailed text descriptions, multiple status dates, and basic geography. On the other hand, the 311 dataset is maintained by NYC’s 311 system and has around 41.5 million rows. It has one row per service request and the key fields include a unique request ID, the responding agency, complaint type and descriptor, creation and closure times, and several location fields such as address, ZIP, BBL, and latitude/longitude. We observed that in the 311 documentation that the “Agency Name” column is currently unreliable, so have informed us to use the “Agency” code instead.
 
-## Missing value analysis
+Please note, that the entire data was too huge so we did not make use of it entirely and instead filtered it for analysis. For HPD housing violations, we restrict it to Manhattan from the year 2022 onwards and so the dataset has 589,005 rows and 41 columns. Same goes with 311 requests dataset as we filter it for Manhattan and for the same time period. It now has, 425,248 rows and 42 columns. To make the two of them comparable, we created new categorical variables: in the violations data, we used regular expressions on the free text NOVDescription field to assign each violation to a broad issue type (such as HEAT/HOT WATER, PLUMBING, PAINT/PLASTER, WATER LEAK, DOOR/WINDOW/LOCK, or PEST/SANITATION). And so in 311 data we mapped Complaint Type (and, for pest issues, Complaint Type together with Descriptor) into the same set of issue types. 
+
+
+## Key distributions in Dataset
+
+Additionally, we looked at some of the key distributions in the data to have a better understanding (see below). In HPD violations data, the most common CurrentStatus values are “VIOLATION DISMISSED”, “VIOLATION CLOSED”, and “NOV SENT OUT”, with a long list of more specific statuses such as “FIRST NO ACCESS TO RE-INSPECT VIOLATION” and “NOT COMPLIED WITH.” In the 311 data, housing related complaints are mostly dominated by a few Complaint Type categories like HEAT/HOT WATER, PLUMBING, PAINT/PLASTER, and WATER LEAK.
+
+
+```{r}
+# Libraries
+library(dplyr)
+library(lubridate)
+library(janitor)
+library(ggplot2)
+library(ggalluvial)
+library(tidyr)
+library(scales)
+library(data.table)
+library(readr)
+library(tidyverse)
+library(forcats)
+library(stringr)
+library(redav)
+# ========== HOUSING VIOLATIONS ==========
+housing_raw <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/Housing_Violations_2022_onwards.csv")
+
+# ========== 311 HOUSING COMPLAINTS ==========
+sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/311_Housing_Complaints_2022_onwards.csv")
+
+
+# ========== KEY DISTRIBUTIONS ==========
+
+# Use tidyverse counting (no data.table .N)
+
+housing_copy <- housing_raw
+sr311_copy <- sr311_raw
+
+# Housing Violations - Top 10 Current Status (showing top 10 since there are many unique values)
+
+housing_copy |>
+  filter(!is.na(CurrentStatus)) |>
+    count(CurrentStatus, sort = TRUE) |>
+      slice_head(n = 10) |>
+        print()
+
+# 311 Complaints - Top 10 Complaint Types (showing top 10)
+
+sr311_copy |>
+  filter(!is.na(Complaint.Type)) |>
+    count(Complaint.Type, sort = TRUE) |>
+      slice_head(n = 10) |>
+        print()
+
+# 311 Complaints - Status distribution
+
+sr311_copy |>
+  filter(!is.na(Status)) |>
+    count(Status, sort = TRUE) |>
+      print()
+
+# 311 Complaints - Top Agencies
+
+sr311_copy |>
+  filter(!is.na(Agency)) |>
+    count(Agency, sort = TRUE) |>
+      slice_head(n = 10) |>
+        print()
+
+```
+
+## Missing Value Analysis
+
+### Missing Data summary:
+
+```{r}
+
+# === HOUSING VIOLATIONS ===
+
+# Calculate missing counts and percentages
+missing_housing <- housing_raw |>
+  summarise(across(everything(), ~ sum(is.na(.)))) |>
+    pivot_longer(everything(), names_to = "column", values_to = "missing_count") |>
+      mutate(total = nrow(housing_raw), missing_pct = round(100 * missing_count / total, 2)) |>
+        arrange(desc(missing_pct))
+
+# Columns with missing values more than 0%
+print(filter(missing_housing, missing_pct > 0))
+
+
+
+# === 311 COMPLAINTS ===
+
+# Calculate missing counts and percentages
+missing_311 <- sr311_raw |>
+  summarise(across(everything(), ~ sum(is.na(.)))) |>
+    pivot_longer(everything(), names_to = "column", values_to = "missing_count") |>
+      mutate(total = nrow(sr311_raw), missing_pct = round(100 * missing_count / total, 2)) |>
+        arrange(desc(missing_pct))
+
+# Columns with >0% missing
+print(filter(missing_311, missing_pct > 0))
+
+# Saving results for visualization
+write.csv(missing_housing, "datasets/missing_values_violations.csv", row.names = FALSE)
+write.csv(missing_311, "datasets/missing_values_311.csv", row.names = FALSE)
+
+
+```
+
+### Missing Data Visualizations
+
+```{r}
+# --------- Visualizations: Missingness bar charts (tidy) ---------
+
+# Load the saved summaries (if needed) or use objects directly
+
+missing_viol_plot <- missing_housing |> filter(missing_pct > 0)
+missing_311_plot  <- missing_311 |> filter(missing_pct > 0)
+
+# ========== GRAPH 1: BAR CHART - HOUSING VIOLATIONS ==========
+
+p1 <- ggplot(missing_viol_plot, aes(x = reorder(column, missing_pct), y = missing_pct)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+  title = "Missing Values in Housing Violations Dataset",
+  subtitle = "Manhattan, 2022-2025",
+  x = "Column Name",
+  y = "Percentage Missing (%)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+  plot.title = element_text(face = "bold", size = 16),
+  axis.text.y = element_text(size = 11)
+  )
+
+print(p1)
+```
+
+
+```{r}
+# ========== GRAPH 2: BAR CHART - 311 COMPLAINTS ==========
+
+p2 <- ggplot(missing_311_plot, aes(x = reorder(column, missing_pct), y = missing_pct)) +
+  geom_bar(stat = "identity", fill = "coral") +
+  coord_flip() +
+  labs(
+  title = "Missing Values in 311 Housing Complaints Dataset",
+  subtitle = "Manhattan, 2022-2025",
+  x = "Column Name",
+  y = "Percentage Missing (%)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+  plot.title = element_text(face = "bold", size = 16),
+  axis.text.y = element_text(size = 11)
+  )
+
+print(p2)
+
+```
+
+### MISSING DATA SUMMARY TABLES
+
+#### Housing Violations – Missingness Summary Table
+
+```{r}
+
+missing_summary_housing <- tibble(
+  Metric = c(
+  "Total Columns",
+  "Columns > 0% Missing",
+  "Columns > 50% Missing",
+  "Columns == 100% Missing",
+  "Columns == 0% Missing"
+  ),
+  Value = c(
+    nrow(missing_housing),
+    nrow(filter(missing_housing, missing_pct > 0)),
+    nrow(filter(missing_housing, missing_pct > 50)),
+    nrow(filter(missing_housing, missing_pct == 100)),
+    nrow(filter(missing_housing, missing_pct == 0))
+  )
+)
+
+missing_summary_housing
+```
+
+#### 311 Complaints – Missingness Summary Table
+
+```{r}
+missing_summary_311 <- tibble(
+  Metric = c(
+  "Total Columns",
+  "Columns > 0% Missing",
+  "Columns > 50% Missing",
+  "Columns == 100% Missing",
+  "Columns == 0% Missing"
+  ),
+  Value = c(
+    nrow(missing_311),
+    nrow(filter(missing_311, missing_pct > 0)),
+    nrow(filter(missing_311, missing_pct > 50)),
+    nrow(filter(missing_311, missing_pct == 100)),
+    nrow(filter(missing_311, missing_pct == 0))
+  )
+)
+
+missing_summary_311
+
+```
+
+### MISSING VALUE HEATMAPS
+
+```{r}
+#| fig-height: 7
+# Simple aggregated missing plot
+plot_missing(housing_raw, percent = TRUE, num_char = 3, max_cols = 10)  
+plot_missing(sr311_raw, percent = TRUE, num_char = 3, max_cols = 10) 
+
+
+```
+
+### Missing Value Analysis
+
+Housing violations dataset is mostly complete since 31/40 columns contain 0 missing values. The remaining 10 columns have less than 50% missing data which in turn means that even incomplete variables retain significant analytical value. Story and NOVID are the columns with highest missing data (13% and 5.8% respectively) andHence, this dataset is consistent and reliable for majority of fields required for analysis.
+
+311 service requests dataset has polarized missingness pattern with 33/42 columns fully complete but except 1 (BBL) , the remaining 8 (Due.Date, Vehicle.Type, Taxi.Company.Borough, Taxi.Pick.Up.Location, Bridge.Highway.Name, Bridge.Highway.Direction, Road.Ramp, Bridge.Highway.Segment) are entirely empty. We haven't used these missing data columns in our analysis. These missing data columns suggest that though most of the complaint data is recorded properly some details (mostly not very improtant) are poorly recorded.
+
+Commentary: The sharp contrast between both our datasets highlights that the data collection challenges were perhaps diffferent because housing violations data is robust and usable across all dimensions but 311 data contains gaps. The 8 blank columns in the 311 dataset are mostly excluded excluded from our analysis to prevent errors. We have used housing dataset with minimal imputation since it's properly recorded.
