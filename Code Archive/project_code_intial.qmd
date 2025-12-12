@@ -1,0 +1,711 @@
+---
+title: "EDAV Project Missing Analysis Intial"
+author: "Shreya Shetty (svs2148) & Shruti Shetty (ss7592)"
+editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
+format:
+  html:
+    fig-width: 6
+    fig-height: 4
+    out-width: 60%
+    embed-resources: true
+---
+
+```{r}
+library(socratadata)
+library(dplyr)
+library(lubridate)
+library(janitor)
+library(readr)
+library(ggplot2)
+library(ggalluvial)
+library(scales)
+library(tidyr)
+library(data.table)
+
+# ========== LOAD FINAL DATASETS ==========
+
+housing_raw <- fread("datasets/Housing_Violations_2022_onwards.csv")
+sr311_raw  <- fread("datasets/311_Housing_Complaints_2022_onwards.csv")
+
+# ========== HOUSING VIOLATIONS ==========
+cat("===== DATASET 1: HOUSING VIOLATIONS (2022+) =====\n\n")
+
+cat("Dimensions:\n")
+cat("Rows:", nrow(housing_raw), "\n")
+cat("Columns:", ncol(housing_raw), "\n\n")
+
+cat("Column names:\n")
+print(names(housing_raw))
+cat("\n")
+
+cat("Data types:\n")
+print(sapply(housing_raw, class))
+cat("\n")
+
+cat("First 5 records:\n")
+print(head(housing_raw, 5))
+cat("\n")
+
+cat("Summary statistics:\n")
+print(summary(housing_raw[, .(ViolationID, BuildingID, InspectionDate, 
+                                 CurrentStatus, ViolationStatus, RentImpairing,
+                                 Latitude, Longitude)]))
+cat("\n")
+
+# ========== 311 HOUSING COMPLAINTS ==========
+cat("\n===== DATASET 2: 311 HOUSING COMPLAINTS (2022+) =====\n\n")
+
+cat("Dimensions:\n")
+cat("Rows:", nrow(sr311_raw ), "\n")
+cat("Columns:", ncol(sr311_raw ), "\n\n")
+
+cat("Column names:\n")
+print(names(sr311_raw ))
+cat("\n")
+
+cat("Data types:\n")
+print(sapply(sr311_raw , class))
+cat("\n")
+
+cat("First 5 records:\n")
+print(head(sr311_raw , 5))
+cat("\n")
+
+cat("Summary statistics:\n")
+print(summary(sr311_raw [, .(`Unique Key`, `Created Date`, `Closed Date`,
+                          Agency, `Complaint Type`, Status,
+                          Latitude, Longitude)]))
+cat("\n")
+
+# ========== KEY DISTRIBUTIONS ==========
+cat("\n===== KEY DISTRIBUTIONS =====\n\n")
+
+cat("Housing Violations - Top 10 Current Status:\n")
+print(housing_raw[, .N, by=CurrentStatus][order(-N)][1:10])
+cat("\n")
+
+cat("311 Complaints - Top 10 Complaint Types:\n")
+print(sr311_raw [, .N, by=`Complaint Type`][order(-N)][1:10])
+cat("\n")
+
+cat("311 Complaints - Status distribution:\n")
+print(sr311_raw [, .N, by=Status][order(-N)])
+cat("\n")
+
+cat("311 Complaints - Top Agencies:\n")
+print(sr311_raw [, .N, by=Agency][order(-N)][1:10])
+
+
+```
+
+```{r}
+library(data.table)
+
+# Just load the filtered datasets we already have
+housing_raw <- fread("datasets/Housing_Violations_2022_onwards.csv")
+sr311_raw  <- fread("datasets/311_Housing_Complaints_2022_onwards.csv")
+
+cat("Working with FULL datasets:\n")
+cat("Housing Violations:", nrow(housing_raw), "rows x", ncol(housing_raw), "columns\n")
+cat("311 Complaints:", nrow(sr311_raw ), "rows x", ncol(sr311_raw ), "columns\n")
+
+
+
+```
+
+```{r}
+
+library(data.table)
+library(ggplot2)
+
+set.seed(2025)
+
+# Load datasets
+housing_raw <- fread("datasets/Housing_Violations_2022_onwards.csv")
+sr311_raw  <- fread("datasets/311_Housing_Complaints_2022_onwards.csv")
+
+# ========== MISSING VALUE ANALYSIS ==========
+
+# === HOUSING VIOLATIONS ===
+cat("===== HOUSING VIOLATIONS - MISSING VALUES =====\n\n")
+
+# Calculate missing counts and percentages
+missing_viol <- data.table(
+  Column = names(housing_raw),
+  Missing_Count = sapply(housing_raw, function(x) sum(is.na(x) | x == "")),
+  Total_Rows = nrow(housing_raw)
+)
+missing_viol[, Missing_Pct := round(Missing_Count / Total_Rows * 100, 2)]
+missing_viol <- missing_viol[order(-Missing_Pct)]
+
+cat("Columns with missing values:\n")
+print(missing_viol[Missing_Pct > 0])
+
+cat("\nColumns with >50% missing:\n")
+print(missing_viol[Missing_Pct > 50])
+
+# === 311 COMPLAINTS ===
+cat("\n\n===== 311 HOUSING COMPLAINTS - MISSING VALUES =====\n\n")
+
+# Calculate missing counts and percentages
+missing_311 <- data.table(
+  Column = names(sr311_raw ),
+  Missing_Count = sapply(sr311_raw , function(x) sum(is.na(x) | x == "")),
+  Total_Rows = nrow(sr311_raw )
+)
+missing_311[, Missing_Pct := round(Missing_Count / Total_Rows * 100, 2)]
+missing_311 <- missing_311[order(-Missing_Pct)]
+
+cat("Columns with missing values:\n")
+print(missing_311[Missing_Pct > 0])
+
+cat("\nColumns with >50% missing:\n")
+print(missing_311[Missing_Pct > 50])
+
+# Save results for visualization
+fwrite(missing_viol, "datasets/missing_values_violations.csv")
+fwrite(missing_311, "datasets/missing_values_311.csv")
+
+cat("\n\nMissing value summaries saved!\n")
+
+
+
+
+
+```
+
+Missing Value Analysis - Code
+
+```{r}
+
+
+library(data.table)
+library(ggplot2)
+
+set.seed(2025)
+
+# Load missing value summaries
+missing_viol <- fread("datasets/missing_values_violations.csv")
+missing_311 <- fread("datasets/missing_values_311.csv")
+
+# ========== GRAPH 1: BAR CHART - HOUSING VIOLATIONS ==========
+
+# Filter to columns with >0% missing
+missing_viol_plot <- missing_viol[Missing_Pct > 0]
+
+# Create bar chart
+p1 <- ggplot(missing_viol_plot, aes(x = reorder(Column, Missing_Pct), y = Missing_Pct)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Missing Values in Housing Violations Dataset",
+    subtitle = "Manhattan, 2022-2025",
+    x = "Column Name",
+    y = "Percentage Missing (%)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    axis.text.y = element_text(size = 11)
+  )
+
+print(p1)
+
+# ========== GRAPH 2: BAR CHART - 311 COMPLAINTS ==========
+
+# Filter to columns with >0% missing
+missing_311_plot <- missing_311[Missing_Pct > 0]
+
+# Create bar chart
+p2 <- ggplot(missing_311_plot, aes(x = reorder(Column, Missing_Pct), y = Missing_Pct)) +
+  geom_bar(stat = "identity", fill = "coral") +
+  coord_flip() +
+  labs(
+    title = "Missing Values in 311 Housing Complaints Dataset",
+    subtitle = "Manhattan, 2022-2025",
+    x = "Column Name",
+    y = "Percentage Missing (%)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    plot.title = element_text(face = "bold", size = 16),
+    axis.text.y = element_text(size = 11)
+  )
+
+print(p2)
+
+# ========== SUMMARY STATISTICS ==========
+cat("\n===== KEY FINDINGS =====\n\n")
+
+cat("HOUSING VIOLATIONS:\n")
+cat("- Total columns:", nrow(missing_viol), "\n")
+cat("- Columns with missing data:", nrow(missing_viol[Missing_Pct > 0]), "\n")
+cat("- Columns >50% missing:", nrow(missing_viol[Missing_Pct > 50]), "\n")
+cat("- Columns 100% complete:", nrow(missing_viol[Missing_Pct == 0]), "\n\n")
+
+cat("311 COMPLAINTS:\n")
+cat("- Total columns:", nrow(missing_311), "\n")
+cat("- Columns with missing data:", nrow(missing_311[Missing_Pct > 0]), "\n")
+cat("- Columns >50% missing:", nrow(missing_311[Missing_Pct > 50]), "\n")
+cat("- Columns 100% missing:", nrow(missing_311[Missing_Pct == 100]), "\n")
+cat("- Columns 100% complete:", nrow(missing_311[Missing_Pct == 0]), "\n")
+
+```
+
+```{r}
+
+library(data.table)
+library(tidyverse)
+
+# Load datasets
+housing_raw <- fread("datasets/Housing_Violations_2022_onwards.csv")
+sr311_raw  <- fread("datasets/311_Housing_Complaints_2022_onwards.csv")
+
+# ========== MISSING VALUE HEATMAP - HOUSING VIOLATIONS ==========
+
+# Convert data.table to tibble and make all columns character for pivoting
+viol_long <- as_tibble(housing_raw) |>
+  mutate(across(everything(), as.character)) |>  # Convert all to character
+  rownames_to_column("row_id") |>
+  pivot_longer(cols = -row_id, names_to = "name", values_to = "value") |>
+  mutate(missing = ifelse(is.na(value) | value == "", "yes", "no"))
+
+# Plot heatmap - sample rows for visibility
+ggplot(viol_long |> filter(as.numeric(row_id) <= 1000),  # First 1000 rows only
+       aes(x = name, y = fct_rev(row_id), fill = missing)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d() +
+  labs(
+    title = "Missing Data Pattern: Housing Violations (sample)",
+    subtitle = "First 1000 records, Manhattan 2022-2025",
+    x = "Column",
+    y = "Row"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+
+# ========== MISSING VALUE HEATMAP - 311 COMPLAINTS ==========
+
+complaints_long <- as_tibble(sr311_raw ) |>
+  mutate(across(everything(), as.character)) |>  # Convert all to character
+  rownames_to_column("row_id") |>
+  pivot_longer(cols = -row_id, names_to = "name", values_to = "value") |>
+  mutate(missing = ifelse(is.na(value) | value == "", "yes", "no"))
+
+# Plot heatmap - sample rows
+ggplot(complaints_long |> filter(as.numeric(row_id) <= 1000),  # First 1000 rows
+       aes(x = name, y = fct_rev(row_id), fill = missing)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d() +
+  labs(
+    title = "Missing Data Pattern: 311 Complaints (sample)",
+    subtitle = "First 1000 records, Manhattan 2022-2025",
+    x = "Column",
+    y = "Row"
+  ) +
+  theme_bw(base_size = 14) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.text.x = element_text(angle = 90, hjust = 1)
+  )
+
+
+
+```
+
+```{r}
+
+library(redav)
+
+# Simple aggregated missing plot
+plot_missing(housing_raw, percent = TRUE)
+plot_missing(sr311_raw , percent = TRUE)
+
+
+```
+
+```{r}
+
+library(redav)
+
+# ========== HOUSING VIOLATIONS - FIXED ==========
+plot_missing(housing_raw, 
+             percent = TRUE,
+             num_char = 10)  # Shorten column names to 8 characters
+
+# Alternative: Manually create cleaner version
+# First, let's see how many columns we're dealing with
+cat("Number of columns:", ncol(housing_raw))
+
+
+
+```
+
+```{r}
+library(data.table)
+library(ggplot2)
+
+# Load missing value summary
+missing_viol <- fread("datasets/missing_values_violations.csv")
+missing_311 <- fread("datasets/missing_values_311.csv")
+
+# Filter to only columns with significant missingness (>5%)
+missing_viol_sig <- missing_viol[Missing_Pct > 5]
+missing_311_sig <- missing_311[Missing_Pct > 5]
+
+# Create subset datasets with only these columns
+cols_to_keep_viol <- missing_viol_sig$Column
+cols_to_keep_311 <- missing_311_sig$Column
+
+dt_viol_subset <- housing_raw[, ..cols_to_keep_viol]
+sr311_raw_subset <- sr311_raw[, ..cols_to_keep_311]
+
+# Now plot with fewer columns (more readable)
+plot_missing(dt_viol_subset, percent = TRUE)
+plot_missing(sr311_raw_subset, percent = TRUE)
+
+
+
+
+```
+
+ask Prof about formatting or is that even required ?
+
+```{r fig.width=8, fig.height=6}
+
+library(data.table)
+library(ggplot2)
+
+set.seed(2025)
+
+# Load data
+housing_raw <- fread("datasets/Housing_Violations_2022_onwards.csv")
+
+# Convert date and extract time components
+housing_raw[, InspectionDate := as.Date(InspectionDate)]
+housing_raw[, YearMonth := format(InspectionDate, "%Y-%m")]
+housing_raw[, Month := month(InspectionDate)]
+housing_raw[, Year := year(InspectionDate)]
+
+# Count violations by month and year
+viol_by_month <- housing_raw[, .N, by = .(Year, Month)][order(Year, Month)]
+
+# Create the plot
+ggplot(viol_by_month, aes(x = Month, y = N, color = factor(Year), group = Year)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(breaks = 1:12, 
+                     labels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Housing Violations by Month and Year",
+    subtitle = "Manhattan, 2022-2025",
+    x = "Month",
+    y = "Number of Violations",
+    color = "Year"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "right"
+  )
+
+
+
+
+```
+
+```{r}
+
+# Investigate February 2022
+feb_2022 <- housing_raw[Year == 2022 & Month == 2]
+cat("February 2022 violations:", nrow(feb_2022), "\n")
+
+# Check if they're all inspected in Feb or entered in Feb
+summary(feb_2022$InspectionDate)
+summary(feb_2022$ApprovedDate)
+
+
+```
+
+```{r}
+
+library(data.table)
+library(ggplot2)
+
+# Aggregate by quarter for smoother trend
+housing_raw[, Quarter := quarter(InspectionDate)]
+housing_raw[, YearQuarter := paste0(Year, "-Q", Quarter)]
+
+viol_by_quarter <- housing_raw[, .N, by = .(Year, Quarter, YearQuarter)][order(Year, Quarter)]
+
+# Create quarter labels
+viol_by_quarter[, QuarterLabel := paste0(Year, "\nQ", Quarter)]
+
+# Plot
+ggplot(viol_by_quarter, aes(x = factor(YearQuarter, levels = YearQuarter), 
+                              y = N, group = 1)) +
+  geom_line(color = "steelblue", linewidth = 1.2) +
+  geom_point(color = "steelblue", size = 3) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = "Housing Violations by Quarter",
+    subtitle = "Manhattan, 2022-2025 (smoothed trend)",
+    x = "Quarter",
+    y = "Number of Violations"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+
+
+```
+
+```{r}
+
+library(data.table)
+library(ggplot2)
+library(stringr)
+
+# Check what violation type columns we have
+cat("Checking violation classification columns:\n")
+cat("CurrentStatus values:\n")
+print(head(housing_raw[, .N, by=CurrentStatus][order(-N)], 10))
+
+cat("\n\nViolationStatus values:\n")
+print(head(housing_raw[, .N, by=ViolationStatus][order(-N)], 10))
+
+cat("\n\nClass values:\n")
+print(head(housing_raw[, .N, by=Class][order(-N)], 10))
+
+cat("\n\nRentImpairing values:\n")
+print(housing_raw[, .N, by=RentImpairing])
+
+# NOVDescription is too detailed, let's extract key violation types
+# Show a few examples first
+cat("\n\nSample NOVDescription:\n")
+print(head(housing_raw$NOVDescription, 5))
+
+
+
+
+
+```
+
+```{r fig.width=8, fig.height=6}
+library(data.table)
+library(ggplot2)
+
+# === GRAPH 3A: Violation Class Distribution ===
+# Class definitions: A=Non-Hazardous, B=Hazardous, C=Immediately Hazardous, I=Failure to Register
+
+class_data <- housing_raw[, .N, by=Class][order(-N)]
+
+# Add descriptive labels
+class_data[, ClassLabel := fcase(
+  Class == "A", "Class A: Non-Hazardous",
+  Class == "B", "Class B: Hazardous",
+  Class == "C", "Class C: Immediately Hazardous",
+  Class == "I", "Class I: Failure to Register",
+  default = Class
+)]
+
+ggplot(class_data, aes(x = reorder(ClassLabel, N), y = N, fill = Class)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = scales::comma(N)), hjust = -0.1, size = 5) +
+  coord_flip() +
+  scale_fill_manual(values = c("A" = "#90EE90", "B" = "#FFD700", 
+                                "C" = "#FF6347", "I" = "#87CEEB")) +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Housing Violations by Severity Class",
+    subtitle = "Manhattan, 2022-2025",
+    x = "Violation Class",
+    y = "Number of Violations",
+    caption = "Class A: Non-hazardous | Class B: Hazardous | Class C: Immediately Hazardous"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "none"
+  )
+
+# === GRAPH 3B: Rent-Impairing Violations ===
+
+rent_data <- housing_raw[, .N, by=RentImpairing]
+rent_data[, Label := ifelse(RentImpairing == "Y", 
+                             "Rent-Impairing\n(affects habitability)", 
+                             "Non-Rent-Impairing")]
+
+ggplot(rent_data, aes(x = Label, y = N, fill = RentImpairing)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = paste0(scales::comma(N), "\n(", 
+                                round(N/sum(N)*100, 1), "%)")), 
+            vjust = -0.5, size = 5) +
+  scale_fill_manual(values = c("N" = "steelblue", "Y" = "darkred")) +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  labs(
+    title = "Rent-Impairing vs Non-Rent-Impairing Violations",
+    subtitle = "Manhattan, 2022-2025",
+    x = "",
+    y = "Number of Violations"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    legend.position = "none"
+  )
+
+
+
+
+```
+
+```{r}
+
+library(stringr)
+
+
+housing_raw <- fread("datasets/Housing_Violations_2022_onwards.csv")
+sr311_raw  <- fread("datasets/311_Housing_Complaints_2022_onwards.csv")
+
+# Final refined categorization
+housing_raw[, ViolationCategory := fcase(
+  Class == "I" | str_detect(NOVDescription, regex("registration|register", ignore_case = TRUE)),
+  "REGISTRATION/ADMIN",
+  
+  str_detect(NOVDescription, regex("smoke detector|carbon monoxide|co detect", ignore_case = TRUE)),
+  "SMOKE/CO DETECTOR",
+  
+  str_detect(NOVDescription, regex("heat|hot water|radiator|boiler|steam", ignore_case = TRUE)), 
+  "HEAT/HOT WATER",
+  
+  str_detect(NOVDescription, regex("paint|plaster|peel|wall|ceiling", ignore_case = TRUE)), 
+  "PAINT/PLASTER",
+  
+  str_detect(NOVDescription, regex("plumb|pipe|faucet|drain|water supply|washbasin|toilet|sink|water closet|cold water", ignore_case = TRUE)), 
+  "PLUMBING",
+  
+  str_detect(NOVDescription, regex("leak", ignore_case = TRUE)), 
+  "WATER LEAK",
+  
+  str_detect(NOVDescription, regex("door|window|lock|self-closing|entrance", ignore_case = TRUE)), 
+  "DOOR/WINDOW/LOCK",
+  
+  str_detect(NOVDescription, regex("rodent|pest|bedbug|bed bug|roach|mice|rat|garbage|sanitation|infest", ignore_case = TRUE)), 
+  "PEST/SANITATION",
+  
+  str_detect(NOVDescription, regex("floor|tile|carpet|wood floor|ceramic", ignore_case = TRUE)),
+  "FLOOR/CEILING",
+  
+  str_detect(NOVDescription, regex("elevator|lift", ignore_case = TRUE)), 
+  "ELEVATOR",
+  
+  str_detect(NOVDescription, regex("mold|mildew|moisture", ignore_case = TRUE)), 
+  "MOLD",
+  
+  str_detect(NOVDescription, regex("electric|wiring|outlet|light", ignore_case = TRUE)), 
+  "ELECTRICAL",
+  
+  str_detect(NOVDescription, regex("gas|stove|appliance", ignore_case = TRUE)),
+  "GAS/APPLIANCES",
+  
+  str_detect(NOVDescription, regex("ventilat|airflow|exhaust fan", ignore_case = TRUE)),
+  "VENTILATION",
+  
+  str_detect(NOVDescription, regex("janitor|superintendent|building service", ignore_case = TRUE)),
+  "BUILDING MANAGEMENT",
+  
+  str_detect(NOVDescription, regex("fire|sprinkler|fire escape|extinguish", ignore_case = TRUE)),
+  "FIRE SAFETY",
+  
+  str_detect(NOVDescription, regex("bell|buzzer|intercom", ignore_case = TRUE)),
+  "BUILDING SYSTEMS",
+  
+  default = "OTHER"
+)]
+
+# Comparison data
+viol_counts <- housing_raw[, .N, by=ViolationCategory][order(-N)]
+cat("Final Violation Categories:\n")
+print(viol_counts)
+
+# Map 311 to standardized categories for comparison
+sr311_raw [, Category := fcase(
+  str_detect(`Complaint Type`, regex("HEAT|HOT WATER", ignore_case = TRUE)), "HEAT/HOT WATER",
+  str_detect(`Complaint Type`, regex("PLUMBING", ignore_case = TRUE)), "PLUMBING",
+  str_detect(`Complaint Type`, regex("PAINT|PLASTER", ignore_case = TRUE)), "PAINT/PLASTER",
+  str_detect(`Complaint Type`, regex("WATER LEAK", ignore_case = TRUE)), "WATER LEAK",
+  str_detect(`Complaint Type`, regex("ELEVATOR", ignore_case = TRUE)), "ELEVATOR",
+  str_detect(`Complaint Type`, regex("MOLD", ignore_case = TRUE)), "MOLD",
+  default = "OTHER"
+)]
+
+complaints_counts <- sr311_raw [, .N, by=Category][order(-N)]
+cat("\n311 Mapped Categories:\n")
+print(complaints_counts)
+
+
+
+
+```
+
+```{r}
+
+# Prepare data for comparison - focus on categories that exist in BOTH datasets
+comparison_categories <- c("HEAT/HOT WATER", "PLUMBING", "PAINT/PLASTER", 
+                          "WATER LEAK", "ELEVATOR", "MOLD")
+
+# Get counts for violations
+viol_comparison <- housing_raw[ViolationCategory %in% comparison_categories, 
+                                  .(Count = .N), by = ViolationCategory]
+viol_comparison[, Source := "Housing Violations"]
+setnames(viol_comparison, "ViolationCategory", "Category")
+
+# Get counts for 311 complaints
+complaints_comparison <- sr311_raw [Category %in% comparison_categories, 
+                                .(Count = .N), by = Category]
+complaints_comparison[, Source := "311 Complaints"]
+
+# Combine
+combined <- rbind(viol_comparison, complaints_comparison)
+
+# Create grouped bar chart
+ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  geom_text(aes(label = scales::comma(Count)), 
+            position = position_dodge(width = 0.9), 
+            vjust = -0.5, size = 4) +
+  scale_fill_manual(values = c("Housing Violations" = "#FF6B6B", 
+                                "311 Complaints" = "#4ECDC4")) +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Violations vs 311 Complaints by Category",
+    subtitle = "Manhattan, 2022-2025 - Comparable Categories Only",
+    x = "Category",
+    y = "Count",
+    fill = "Source"
+  ) +
+  theme_minimal(base_size = 16) +
+  theme(
+    plot.title = element_text(face = "bold"),
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    legend.position = "top"
+  )
+
+
+
+
+
+```
