@@ -47,12 +47,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="readme" class="level2">
-<h2 class="anchored" data-anchor-id="readme">README</h2>
+<section id="nyc-housing-violation-and-complaints-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="nyc-housing-violation-and-complaints-analysis">NYC Housing Violation and Complaints Analysis</h2>
 <p>This project analyzes housing maintenance code violations from HPD and housing-related 311 service requests for Manhattan between 2022–2025 to understand where, when, and how serious housing problems are for tenants. The code, data-processing steps, and results are organized as a Quarto website and rendered to the docs/ folder for deployment via GitHub Pages.</p>
 </section>
 <section id="repository-structure" class="level2">
-<h2 class="anchored" data-anchor-id="repository-structure"><em>Repository structure</em></h2>
+<h2 class="anchored" data-anchor-id="repository-structure">Repository structure</h2>
 <ul class="task-list">
 <li><p><label><input type="checkbox"><code>index.qmd</code>: Project introduction, motivation, research questions, brief overview of the two NYC Open Data sources, and a short nontechnical description of why comparing 311 complaints to Housing violations matters for renters and policy.</label></p></li>
 <li><p><label><input type="checkbox"><code>data.qmd</code>: Data description and cleaning. Explains the original HPD violation table and 311 service request table, Manhattan-only filtering, date parsing with mixed formats, manual mapping of descriptive text into unified categories (e.g., HEAT/HOT WATER, PLUMBING, PEST/SANITATION), and basic missingness patterns. Includes summary tables of key variables and missing values, plus justification for dropping or recoding some fields.</label></p></li>
@@ -61,6 +61,9 @@ ul.task-list li input[type="checkbox"] {
 <li><p><label><input type="checkbox"><code>docs/</code>: Rendered HTML for all .qmd files plus site assets are saved here. This folder is the Quarto output directory configured in _quarto.yml for GitHub Pages deployment.</label></p></li>
 <li><p><label><input type="checkbox"><code>_quarto.yml</code>: Site configuration. Defines the project as a website, lists the pages (index.qmd, data.qmd, project_code_final.qmd, conclusion.qmd), sets the output directory to docs/, and controls shared options such as default figure sizes and theme.</label></p></li>
 </ul>
+<blockquote class="blockquote">
+<p>You will need to download the raw CSV datasets from the NYC Open HPD website whose links are provided in data decription, and save it in <code>datasets/</code> folder to run the project locally.</p>
+</blockquote>
 </section>
 <section id="render-the-book-rstudio" class="level2">
 <h2 class="anchored" data-anchor-id="render-the-book-rstudio">Render the book (RStudio)</h2>
@@ -71,9 +74,6 @@ ul.task-list li input[type="checkbox"] {
 <li><p><label><input type="checkbox">4. If it looks good, commit and push all changed files to GitHub.</label></p></li>
 </ul>
 <p>(You will need to repeat steps 2 and 4 every time you wish to update the book on GitHub Pages.)</p>
-<blockquote class="blockquote">
-<p>You will need to download the raw CSV datasets from the NYC Open HPD website whose links are provided in data decription, and save it in <code>datasets/</code> folder to run the project locally.</p>
-</blockquote>
 </section>
 
 </main>

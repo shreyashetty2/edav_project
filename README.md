@@ -1,10 +1,10 @@
 
 
-## README
+## NYC Housing Violation and Complaints Analysis
 
 This project analyzes housing maintenance code violations from HPD and housing-related 311 service requests for Manhattan between 2022–2025 to understand where, when, and how serious housing problems are for tenants. The code, data-processing steps, and results are organized as a Quarto website and rendered to the docs/ folder for deployment via GitHub Pages.
 
-## *Repository structure*
+## Repository structure
 - [ ] `index.qmd`: Project introduction, motivation, research questions, brief overview of the two NYC Open Data sources, and a short nontechnical description of why comparing 311 complaints to Housing violations matters for renters and policy.
 
 - [ ] `data.qmd`: Data description and cleaning. Explains the original HPD violation table and 311 service request table, Manhattan-only filtering, date parsing with mixed formats, manual mapping of descriptive text into unified categories (e.g., HEAT/HOT WATER, PLUMBING, PEST/SANITATION), and basic missingness patterns. Includes summary tables of key variables and missing values, plus justification for dropping or recoding some fields.
@@ -18,6 +18,9 @@ This project analyzes housing maintenance code violations from HPD and housing-r
 - [ ] `_quarto.yml`: Site configuration. Defines the project as a website, lists the pages (index.qmd, data.qmd, project_code_final.qmd, conclusion.qmd), sets the output directory to docs/, and controls shared options such as default figure sizes and theme.
 
 
+> You will need to download the raw CSV datasets from the NYC Open HPD website whose links are provided in data decription, and save it in `datasets/` folder to run the project locally.
+
+
 ## Render the book (RStudio)
 
 - [ ] 1. If you haven't already, click "Help" "Check for Updates" to make sure you have the latest version of RStudio (and thus have Quarto installed.)
@@ -29,5 +32,3 @@ This project analyzes housing maintenance code violations from HPD and housing-r
 - [ ] 4. If it looks good, commit and push all changed files to GitHub. 
 
 (You will need to repeat steps 2 and 4 every time you wish to update the book on GitHub Pages.)
-
-> You will need to download the raw CSV datasets from the NYC Open HPD website whose links are provided in data decription, and save it in `datasets/` folder to run the project locally.
