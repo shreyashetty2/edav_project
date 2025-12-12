@@ -1,5 +1,5 @@
 ---
-title: "Analysis Results"
+title: "Analysis & Results"
 author: "Shreya Shetty (svs2148) & Shruti Shetty (ss7592)"
 editor: visual
 execute:
@@ -15,6 +15,7 @@ format:
 ---
 
 ## Import Libraries, Dataset Setup and Cleaning
+
 ### Loading Libraries
 
 ```{r}
@@ -39,7 +40,7 @@ library(GGally)
 
 ```{r}
 # ========== HOUSING VIOLATIONS ==========
-housing_raw <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/Housing_Violations_2022_onwards.csv")
+housing_raw <- read.csv("\edav_project\datasets\Housing_Violations_2022_onwards.csv")
 
 # ========== 311 HOUSING COMPLAINTS ==========
 sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/311_Housing_Complaints_2022_onwards.csv")
@@ -100,11 +101,11 @@ housing <- housing |>
 ```
 
 Housing Violations updated rows check:
+
 ```{r}
 # Hosuing violations rows
 nrow(housing)
 ```
-
 
 ```{r}
 sr311 <- sr311 |>
@@ -118,14 +119,15 @@ sr311 <- sr311 |>
 )
 ```
 
-311 Request udpated rows check:
+311 Request updated rows check:
+
 ```{r}
 # 311 requests rows updated
 nrow(sr311)
 
 ```
 
-The date columns have been parsed properly and as we can see the both raw data we downloaded, only had data from the Manhattan borough since before and after filtering the number of rows remain same for both datastes i.e. 589005 rows in Housing Violations dataset and 425248 rows in 311 requests dataset.
+The date columns have been parsed properly and as we can see the both raw data we downloaded, only had data from the Manhattan borough since before and after filtering the number of rows remain same for both datasets i.e. 589005 rows in Housing Violations dataset and 425248 rows in 311 requests dataset.
 
 ### Housing violation decription column data cleaning
 
@@ -493,10 +495,7 @@ ggplot(viol_flow_2024,
 
 We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV (notification of violation) month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some blank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
 
-
-## Facet Comparative Panel (Housing vs 311)
-
-
+## Facet Comparative Panel: Housing vs 311
 
 ```{r}
 #| fig-height: 8
@@ -601,6 +600,8 @@ ggplot(panel_all, aes(x = Value, y = n, fill = Source)) +
 
 ```
 
+Here, we compared the top 10 blocks, housing/violation categories, streets, and ZIP codes in Manhattan across both are datasets and we can conclude that mostly same areas and same problem types show up in both datasets at the top, like blocks 2136 and 2170 have highest violations/complaints, streets like Broadway and St Nicholas Avenue also have highest records in both, ZIP codes 10031–10033, 10027 all have very high counts in both datasets, and categories like HEAT/HOT WATER, PLUMBING, and PAINT/PLASTER dominate for both complaints and violations, indicating that both our datasets focus on similar set of buildings, locations, categories, and issues.
+
 
 
 ## Time Series
@@ -637,7 +638,7 @@ sr311 |>
 
 It is almost a solid pink block with very tiny variation in consecutive days and that's why it's very hard to see any clear pattern. Hence, this plot does no give us much information. TO further deep dive into finding a trend in the time series, we plotted combined monthly series for both the dataset.
 
-### Monthly combined of housing and 311
+### Monthly combined of Housing and 311
 
 ```{r}
 #| fig-width: 8
@@ -669,7 +670,7 @@ monthly_combined |>
 
 Here, both 311 complaints and housing violations in Manhattan during 2022-2025 have a fairly strong seasonal pattern, but there are also some exceptions. In most years the red complaint line is highest in late fall & winter, & lowest in late spring & summer which basically means people call 311 line more about housing problems during colder months when heat and building conditions matter more. Now blue violations line also have major winter peaks overall but it includes few extra spikes in other months (like June & August 2025), so its pattern is winter‑dominated but not specific to winter‑only. Also, some of those spikes might be anomalies and outlier inspections instead of a reasonable trend.
 
-### Time series Variation by Month and Year
+### Time series Variation by Month and Year for Housing
 
 ```{r}
 #| fig-width: 8
@@ -714,7 +715,7 @@ ggplot(viol_by_month, aes(x = Month, y = N, color = factor(Year), group = Year))
 
 ```
 
-It shows that there is no stable seasonal pattern across years. Some months are high in one year and low in another like February is very unsually high only in 2022, while peaks in other years appear in different months like April 2024 or June 2025. Hence, we can conclude that monthly counts fluctuate randomly rather than following a consistent winter–summer or any other repeating trend.
+It shows that there is no stable seasonal pattern across years. Some months are high in one year and low in another like February is very unusually high only in 2022, while peaks in other years appear in different months like April 2024 or June 2025. Hence, we can conclude that monthly counts fluctuate randomly rather than following a consistent winter–summer or any other repeating trend.
 
 ### Investigating February 2022 peak
 
@@ -733,7 +734,7 @@ summary(feb_2022$ApprovedDate)
 
 Upon further review we can see that Median/Mean inspection date is February 15, 2022 & most inspections are clustered around Feb 15-16 only. This does not seem like a data error but is simply appearing to be a mass inspection event in mid-February 2022. It is not a trend.
 
-### Smoothed Temporal View
+### Smoothed Temporal View: Housing by Quarter
 
 We tried to find any overall trends when we smooth out the monthly fluctuations
 
@@ -773,7 +774,6 @@ ggplot(viol_by_quarter, aes(x = factor(YearQuarter, levels = YearQuarter),
 
 It shows that housing violations in Manhattan from 2022-2025 move up and down between quarters but stay in a fairly similar range (30,000–45,000), so there is no strong upward or downward trend. Q4 20205 seems like an anomaly but it is not because it does not include data from mid November - December 2025 data are not fully included, hence it is not any abnormal evidence of a real drop.
 
-
 ## Spatial sample plots
 
 ### Housing Violations
@@ -801,6 +801,9 @@ sr311 |>
   theme_minimal() +
   labs(title = "311 Complaints Locations (sample 5k)", x = "Longitude", y = "Latitude")
 ```
+
+Both the above location plots show that overall the housing violations and 311 complaints are spread across the almost full north–south span of Manhattan with very similar clusters in same bands of longitude and latitude but 311 plot is a bit more denser yet still both datasets show similar island shape and highlight the same high‑activity corridors. This basically means that hot spots in the plot for both the datasets mostly occur in same parts of Manhattan.
+
 
 ## Parallel Coordinates plot
 
@@ -895,8 +898,6 @@ ggparcoord(
 
 This plot compares each sampled building violation across 4 variables & groups them by how many Class C violations they have. The only clear pattern we can see here is that buildings with higher share of Class C violations have higher share of rent‑impairing violations but for other variables (total violations, 311 complaints), the 3 groups overlap alot, so there is no simple correlation or strong extra pattern visible.
 
-
-
 ## Top Violation Classes
 
 ```{r}
@@ -937,9 +938,7 @@ ggplot(class_data, aes(x = reorder(ClassLabel, N), y = N, fill = Class)) +
 
 ```
 
-
-Majority of violations (~238k) are classified as hazardous (Class B) followed by immediately hazardous (Class C) which is ~185k violations, indicating very serious safety and habitability concerns in Manhattan. Class B violations, which require correction within 30 days, dominate the landscape. This high proportion of serious violations highlights how important it is to thouroughly inspect a building before renting.
-
+Majority of violations (\~238k) are classified as hazardous (Class B) followed by immediately hazardous (Class C) which is \~185k violations, indicating very serious safety and habitability concerns in Manhattan. Class B violations, which require correction within 30 days, dominate the landscape. This high proportion of serious violations highlights how important it is to thouroughly inspect a building before renting.
 
 ## Rent-Impairing Violation
 
