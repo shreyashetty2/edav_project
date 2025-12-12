@@ -1,5 +1,7 @@
 ## NYC Housing Violation and Complaints Analysis
 
+Authors: Shreya Shetty (svs2148) and Shruti Shetty (ss7592)
+
 This project analyzes housing maintenance code violations from HPD and housing-related 311 service requests for Manhattan between 2022–2025 to understand where, when, and how serious housing problems are for tenants. The code, data-processing steps, and results are organized as a Quarto website and rendered to the docs/ folder for deployment via GitHub Pages.
 
 ## Repository Structure
