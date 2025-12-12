@@ -1,9 +1,11 @@
 ---
-title: "NYC Building Violation Analysis"
+title: "Analysis Results"
 author: "Shreya Shetty (svs2148) & Shruti Shetty (ss7592)"
 editor: visual
 execute:
   echo: true
+  warning: false
+  message: false
 format:
   html:
     fig-width: 6
@@ -12,7 +14,8 @@ format:
     embed-resources: true
 ---
 
-## Loading Libraries
+## Import Libraries, Dataset Setup and Cleaning
+### Loading Libraries
 
 ```{r}
 # Libraries
@@ -32,7 +35,7 @@ library(redav)
 library(GGally)
 ```
 
-## Loading Housing Violations and 311 Complaints Datasets
+### Loading Housing Violations and 311 Complaints Datasets
 
 ```{r}
 # ========== HOUSING VIOLATIONS ==========
@@ -43,7 +46,7 @@ sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Fi
 
 ```
 
-## Formatting dates and making sure loaded data has only Manhattan Borough entries
+### Formatting dates and making sure loaded data has only Manhattan Borough entries
 
 Here, we created a robust set of parse orders for mixed formats in both our datasets. We created cleaned date columns while keep original columns untouched. Also, we added new columns with month-year (Month name + Year) extracted which will be used for alluvial stacks later on
 
@@ -94,10 +97,16 @@ housing <- housing |>
                           format(floor_date(statusdate_clean, "month"), "%B %Y"),
                           NA_character_)
   )
+```
 
+Housing Violations updated rows check:
+```{r}
 # Hosuing violations rows
 nrow(housing)
+```
 
+
+```{r}
 sr311 <- sr311 |>
   mutate(
     created_month = ifelse(!is.na(created_clean),
@@ -107,7 +116,10 @@ sr311 <- sr311 |>
                            format(floor_date(closed_clean, "month"), "%B %Y"),
                            NA_character_)
 )
+```
 
+311 Request udpated rows check:
+```{r}
 # 311 requests rows updated
 nrow(sr311)
 
@@ -115,7 +127,7 @@ nrow(sr311)
 
 The date columns have been parsed properly and as we can see the both raw data we downloaded, only had data from the Manhattan borough since before and after filtering the number of rows remain same for both datastes i.e. 589005 rows in Housing Violations dataset and 425248 rows in 311 requests dataset.
 
-## Housing violation decription column data cleaning
+### Housing violation decription column data cleaning
 
 ```{r}
 ## Housing violation description column data cleaning
@@ -257,7 +269,7 @@ sr311 |>
 
 Here, manual categorization logic we applied successfully maps unstructured text descriptions (NOVDescriptions) in Housing Violations dataset into unified high-level categories which enables a direct one-to-one comparison between both. We also normalized the categories in 311 Complaints dataset since there were multiple for the same category, ege. there were 2 types "HEAT/HOT WATER" and "Heat/Hot Water" which were merged into 1.
 
-## Save cleaned CSV copies for reproducibility
+### Save cleaned CSV copies for reproducibility
 
 ```{r}
 write.csv(housing, "datasets/housing_manhattan_3years_clean.csv", row.names = FALSE)
@@ -325,7 +337,7 @@ ggplot(combined, aes(x = reorder(Category, -Count), y = Count, fill = Source)) +
 
 There is a substantial disparity in volume for the "HEAT/HOT WATER" category in violations vs complaints, where the number of 311 Service Requests is significantly higher than the count of official Housing violations issued for the same. Hence, we can conclude that while tenant complaints regarding heating are very very frequent, quite a smaller proportion result in confirmed enforcement actions by management. In other categories, the difference is relatively small. In case of Paint/Plaster and Pests, there is much higher number of building violation entries which shows that probably regular building inspections is conducted for those and hence less direct 311 complaints. Out of all top 7 identified categories overlapping in both the datasets, Heat/Hot Water is the highest and Mold is the lowest complaint type.
 
-## 3-year per-quarter faceted plots
+## 3-year per-quarter faceted plots for Housing Violations & 311 Complaints
 
 ```{r}
 #| fig-height: 7
@@ -424,7 +436,7 @@ ggplot(sr311_quarter_lines_focus,
 
 Across quarters, HEAT/HOT WATER 311 complaints and housing violations both show a clear seasonal pattern. They spike in Q1, drop sharply in Q2 and Q3 for all 3 years, and rise again Q4 matching winter heating needs. For PLUMBING, PAINT/PLASTER, PEST/SANITATION, WATER LEAK, ELEVATOR, and MOLD, housing violations counts change over the quarters (most show a local peak around Q3), but patterns are less sharp and not perfectly identical so they don't show a single clear seasonal shape like HEAT/HOT WATER does. Pest and sanitation 311 complaints peak in Q3 in all 3 years, which suggests these problems are most common in late summer, which is also consistent with warmer weather since heat and humidity make it easier for rodents, roaches, and insects to spread, and garbage issues can get worse when it’s so hot. But it's not as strong or as perfectly consistent across all years. For the other categories for 311 complaints, the quarter‑to‑quarter changes within each panel are relatively small and do not follow a clear, repeated seasonal shape across years.
 
-## Housing Violation Monthly Transition Alluvial for 2024 (for a small sample size)
+## Housing Violation Monthly Transition Alluvial for 2024 (Sample)
 
 ```{r}
 # ---- Housing Violation 2024 Monthly Transition Alluvial ----
@@ -479,13 +491,124 @@ ggplot(viol_flow_2024,
 
 ```
 
-We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV (notivr of violation) month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some blank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
+We can see how 2024 housing violations (we have taken a small sample slice of 200 here to visualize better) move from inspection month to NOV (notification of violation) month to when current status takes effect, with ribbon colors showing violation Class (A least serious, C most serious, I immediately hazardous). Mostly, flows stay within nearby months across 3 stages showing many violations progress through the process within the same part of the year. Thicker orange and blue ribbons show that Class B and C violations make up most of the pipeline, while Class A is thinner and Class I appears as a smaller set of immediately hazardous cases. There are also some blank bands in NOV step which occur when inspection and status dates are recorded but NOVIssuedDate or Class code is missing, so those months or classes appear as NA.
+
+
+## Facet Comparative Panel (Housing vs 311)
+
+
+
+```{r}
+#| fig-height: 8
+#| fig-width: 7
+# ----------------------------
+# 1) STANDARDIZE ZIPCODE NAME
+# ----------------------------
+
+housing2 <- housing |>
+  rename(ZipCode = Postcode) |>
+  # Convert housing block to character type immediately
+  mutate(Block = as.character(Block)) 
+
+sr311_2 <- sr311 |>
+  rename(ZipCode = Incident.Zip) |>
+  mutate(
+    # Extract 5 digits starting from the 2nd character (position 2) and removing start zeroes
+    Block = as.character(as.numeric(str_sub(BBL, start = 2, end = 6)))
+  )
+
+
+# ----------------------------
+# 2) CREATE TOP SETS PER VARIABLE (20 each)
+# ----------------------------
+
+# Top 10 ZIPs
+housing_zip <- housing2 |> filter(!is.na(ZipCode)) |> count(ZipCode) |> slice_max(n, n = 10)
+sr311_zip   <- sr311_2 |> filter(!is.na(ZipCode)) |> count(ZipCode) |> slice_max(n, n = 10)
+
+# Top 10 Streets
+housing_st <- housing2 |> filter(!is.na(StreetName)) |> count(StreetName) |> slice_max(n, n = 10)
+sr311_st   <- sr311_2 |> filter(!is.na(Street.Name)) |> count(Street.Name) |> slice_max(n, n = 10)
+
+# Top Categories (Housing only but we compare counts against 311 Categories
+housing_cat <- housing2 |> filter(!is.na(ViolationCategory)) |> count(ViolationCategory) |> slice_max(n, n = 10) |> rename(Category = ViolationCategory)
+sr311_cat   <- sr311_2 |> filter(!is.na(Category)) |> count(Category) |> slice_max(n, n = 10) 
+
+# Top 10 Blocks
+housing_block<- housing2 |> filter(!is.na(Block)) |> count(Block) |> slice_max(n, n = 10)
+sr311_block  <- sr311_2 |> filter(!is.na(Block)) |> count(Block) |> slice_max(n, n = 10)
+
+
+# ----------------------------
+# 3) COMBINE PANELS  (FIXED WITH as.character)
+# ----------------------------
+
+zip_panel <- bind_rows(
+  housing_zip |> mutate(Value = as.character(ZipCode), Source = "Housing", Facet = "ZipCode"),
+  sr311_zip   |> mutate(Value = as.character(ZipCode), Source = "311",     Facet = "ZipCode")
+)
+
+
+category_panel <- bind_rows(
+  housing_cat |> mutate(Value = as.character(Category), Source = "Housing", Facet = "Category"),
+  sr311_cat   |> mutate(Value = as.character(Category), Source = "311",     Facet = "Category")
+)
+
+street_panel <- bind_rows(
+  housing_st |> mutate(Value = as.character(StreetName), Source = "Housing", Facet = "StreetName"),
+  sr311_st   |> mutate(Value = as.character(Street.Name), Source = "311",     Facet = "StreetName")
+)
+
+
+block_panel <- bind_rows(
+  housing_block |> mutate(Value = as.character(Block), Source = "Housing", Facet = "Block"),
+  sr311_block  |> mutate(Value = as.character(Block), Source = "311",     Facet = "Block")
+)
+
+# ----------------------------
+# 4) FINAL COMBINED PANEL
+# ----------------------------
+
+panel_all <- bind_rows(zip_panel, street_panel, category_panel, block_panel) |>
+  group_by(Facet) |>
+  mutate(Value = fct_reorder(Value, n)) |>
+  ungroup()# ----------------------------
+# 4) FINAL FACETED PLOT
+# ----------------------------
+
+ggplot(panel_all, aes(x = Value, y = n, fill = Source)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  facet_wrap(~ Facet, scales = "free", ncol = 2) +
+  scale_y_continuous(labels = scales::comma) +
+  scale_fill_manual(values = c("Housing" = "purple", "311" = "pink")) +
+  labs(
+    title = "Top Manhattan Characteristics Across\nHousing Violations and 311 Complaints",
+    subtitle = "Blocks, Violation/Complaint Categories,\nStreet Names, and ZIP Codes",
+    x = "",
+    y = "Count",
+    fill = "Source"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text = element_text(face = "bold", size = 9),
+    plot.title = element_text(face = "bold", size = 13),
+    plot.subtitle = element_text(size = 10),
+    legend.position = "top",
+    axis.text.y = element_text(size = 6),
+    axis.text.x = element_text(size = 6)
+  )
+
+```
+
+
 
 ## Time Series
 
 ### Housing Daily
 
 ```{r}
+#| fig-width: 7
 housing |>
   filter(!is.na(inspectiondate_clean)) |>
   count(inspectiondate_clean) |>
@@ -495,11 +618,13 @@ housing |>
   x = "Inspection date", y = "Count") +
   theme_minimal()
 ```
+
 The spikes here kind of look like a pattern, but the size and shape suggest they are just random glitches and not exactly a real trend. On normal days between 2022-2025, it is mostly noisy and a flat band around a few hundred inspections but on very few days it jumps over 5,000. This is extremely high & not very realistic just 1 day and does not spread over nearby days so it's not a trend but these spikes are outliers.
 
 ### 311 Daily
 
 ```{r}
+#| fig-width: 7
 sr311 |>
   filter(!is.na(created_clean)) |>
   count(created_clean) |>
@@ -511,10 +636,11 @@ sr311 |>
 ```
 
 It is almost a solid pink block with very tiny variation in consecutive days and that's why it's very hard to see any clear pattern. Hence, this plot does no give us much information. TO further deep dive into finding a trend in the time series, we plotted combined monthly series for both the dataset.
- 
+
 ### Monthly combined of housing and 311
 
 ```{r}
+#| fig-width: 8
 housing_month <- housing |>
   filter(!is.na(inspectiondate_clean)) |>
   mutate(month = floor_date(inspectiondate_clean, "month")) |>
@@ -541,16 +667,12 @@ monthly_combined |>
   x = "Month", y = "Count")
 ```
 
-
-
-
-
-Here, both 311 complaints and housing violations in Manhattan during 2022-2025 have a fairly strong seasonal pattern, but there are also some exceptions. In most years the red complaint line is highest in late fall & winter, & lowest in late spring & summer which basically means people call 311 line more about housing problems during colder months when heat and building conditions matter more. Now  blue violations line also have major winter peaks overall but it includes few extra spikes in other months (like June & August 2025), so its pattern is winter‑dominated but not specific to winter‑only. Also, some of those spikes might be anomalies and outlier inspections instead of a reasonable trend.
+Here, both 311 complaints and housing violations in Manhattan during 2022-2025 have a fairly strong seasonal pattern, but there are also some exceptions. In most years the red complaint line is highest in late fall & winter, & lowest in late spring & summer which basically means people call 311 line more about housing problems during colder months when heat and building conditions matter more. Now blue violations line also have major winter peaks overall but it includes few extra spikes in other months (like June & August 2025), so its pattern is winter‑dominated but not specific to winter‑only. Also, some of those spikes might be anomalies and outlier inspections instead of a reasonable trend.
 
 ### Time series Variation by Month and Year
 
 ```{r}
-
+#| fig-width: 8
 
 set.seed(2025)
 
@@ -594,7 +716,7 @@ ggplot(viol_by_month, aes(x = Month, y = N, color = factor(Year), group = Year))
 
 It shows that there is no stable seasonal pattern across years. Some months are high in one year and low in another like February is very unsually high only in 2022, while peaks in other years appear in different months like April 2024 or June 2025. Hence, we can conclude that monthly counts fluctuate randomly rather than following a consistent winter–summer or any other repeating trend.
 
-### Investingating February 2022 peak
+### Investigating February 2022 peak
 
 ```{r}
 
@@ -608,14 +730,15 @@ summary(feb_2022$ApprovedDate)
 
 
 ```
-Upon further review we can see that Median/Mean inspection date is February 15, 2022 & most inspections are clustered around Feb 15-16 only. This does not seem like a data error but is simply  appearing to be a mass inspection event in mid-February 2022. It is not a trend.
 
+Upon further review we can see that Median/Mean inspection date is February 15, 2022 & most inspections are clustered around Feb 15-16 only. This does not seem like a data error but is simply appearing to be a mass inspection event in mid-February 2022. It is not a trend.
 
 ### Smoothed Temporal View
 
 We tried to find any overall trends when we smooth out the monthly fluctuations
 
 ```{r}
+#| fig-width: 8
 
 # Aggregate by quarter for smoother trend
 housing_2[, Quarter := quarter(InspectionDate)]
@@ -651,13 +774,12 @@ ggplot(viol_by_quarter, aes(x = factor(YearQuarter, levels = YearQuarter),
 It shows that housing violations in Manhattan from 2022-2025 move up and down between quarters but stay in a fairly similar range (30,000–45,000), so there is no strong upward or downward trend. Q4 20205 seems like an anomaly but it is not because it does not include data from mid November - December 2025 data are not fully included, hence it is not any abnormal evidence of a real drop.
 
 
-
-
 ## Spatial sample plots
 
 ### Housing Violations
 
 ```{r}
+#| fig-width: 8
 housing |>
   filter(!is.na(Longitude) & !is.na(Latitude)) |>
   slice_sample(n = 5000) |>
@@ -670,6 +792,7 @@ housing |>
 ### 311 Complaints
 
 ```{r}
+#| fig-width: 8
 sr311 |>
   filter(!is.na(Longitude) & !is.na(Latitude)) |>
   slice_sample(n = 5000) |>
@@ -679,13 +802,11 @@ sr311 |>
   labs(title = "311 Complaints Locations (sample 5k)", x = "Longitude", y = "Latitude")
 ```
 
-
-
-## Parallel Coordinated plot
+## Parallel Coordinates plot
 
 ```{r}
-
-#| fig-height: 8
+#| fig-width: 7
+#| fig-height: 7
 
 housing_dt <- housing_2
 sr311_dt   <- as.data.table(sr311)
@@ -768,110 +889,15 @@ ggparcoord(
     title = "Parallel Coordinates: Sample of Buildings",
     x = "Variables",
     y = "Scaled value",
-    color = "Class C share"
+    color = "Share of Class C"
   )
 ```
 
-## Facet Comparative Panel (Housing vs 311)
-
-```{r}
-#| fig-height: 8
-# ----------------------------
-# 1) STANDARDIZE ZIPCODE NAME
-# ----------------------------
-
-housing2 <- housing |>
-  rename(ZipCode = Postcode)
-
-sr311_2 <- sr311 |>
-  rename(ZipCode = Incident.Zip)
-
-# ----------------------------
-# 2) CREATE TOP SETS PER VARIABLE (20 each)
-# ----------------------------
-
-# Top 10 ZIPs
-housing_zip <- housing2 |> filter(!is.na(ZipCode)) |> count(ZipCode) |> slice_max(n, n = 10)
-sr311_zip   <- sr311_2 |> filter(!is.na(ZipCode)) |> count(ZipCode) |> slice_max(n, n = 10)
-
-# Top 10 Streets
-housing_st <- housing2 |> filter(!is.na(StreetName)) |> count(StreetName) |> slice_max(n, n = 10)
-sr311_st   <- sr311_2 |> filter(!is.na(Street.Name)) |> count(Street.Name) |> slice_max(n, n = 10)
-
-# Top Categories (Housing only but we compare counts against 311 Categories
-housing_cat <- housing2 |> filter(!is.na(ViolationCategory)) |> count(ViolationCategory) |> slice_max(n, n = 10) |> rename(Category = ViolationCategory)
-sr311_cat   <- sr311_2 |> filter(!is.na(Category)) |> count(Category) |> slice_max(n, n = 10) 
-
-# Top 10 Blocks
-housing_block<- housing2 |> filter(!is.na(Block)) |> count(Block) |> slice_max(n, n = 10)
-sr311_block  <- sr311_2 |> filter(!is.na(BBL)) |> count(BBL) |> slice_max(n, n = 10)
-
-
-# ----------------------------
-# 3) COMBINE PANELS  (FIXED WITH as.character)
-# ----------------------------
-
-zip_panel <- bind_rows(
-  housing_zip |> mutate(Value = as.character(ZipCode), Source = "Housing", Facet = "ZipCode"),
-  sr311_zip   |> mutate(Value = as.character(ZipCode), Source = "311",     Facet = "ZipCode")
-)
-
-
-category_panel <- bind_rows(
-  housing_cat |> mutate(Value = as.character(Category), Source = "Housing", Facet = "Category"),
-  sr311_cat   |> mutate(Value = as.character(Category), Source = "311",     Facet = "Category")
-)
-
-street_panel <- bind_rows(
-  housing_st |> mutate(Value = as.character(StreetName), Source = "Housing", Facet = "StreetName"),
-  sr311_st   |> mutate(Value = as.character(Street.Name), Source = "311",     Facet = "StreetName")
-)
-
-
-block_panel <- bind_rows(
-  housing_block |> mutate(Value = as.character(Block), Source = "Housing", Facet = "Block"),
-  sr311_block  |> mutate(Value = as.character(BBL), Source = "311",     Facet = "Block")
-)
-
-# ----------------------------
-# 4) FINAL COMBINED PANEL
-# ----------------------------
-
-panel_all <- bind_rows(zip_panel, street_panel, category_panel, block_panel) |>
-  group_by(Facet) |>
-  mutate(Value = fct_reorder(Value, n)) |>
-  ungroup()# ----------------------------
-# 4) FINAL FACETED PLOT
-# ----------------------------
-
-ggplot(panel_all, aes(x = Value, y = n, fill = Source)) +
-  geom_col(position = "dodge") +
-  coord_flip() +
-  facet_wrap(~ Facet, scales = "free", ncol = 2) +
-  scale_y_continuous(labels = scales::comma) +
-  scale_fill_manual(values = c("Housing" = "purple", "311" = "pink")) +
-  labs(
-    title = "Top Manhattan Characteristics Across Housing Violations and 311 Complaints",
-    subtitle = "ZIP Codes, Street Names, Violation Categories, and Blocks",
-    x = "",
-    y = "Count",
-    fill = "Source"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(
-    strip.text = element_text(face = "bold", size = 13),
-    plot.title = element_text(face = "bold", size = 18),
-    legend.position = "top"
-  )
-
-```
+This plot compares each sampled building violation across 4 variables & groups them by how many Class C violations they have. The only clear pattern we can see here is that buildings with higher share of Class C violations have higher share of rent‑impairing violations but for other variables (total violations, 311 complaints), the 3 groups overlap alot, so there is no simple correlation or strong extra pattern visible.
 
 
 
 ## Top Violation Classes
-
-What Types of Violations Are Most Common? Research Question: What are the most common housing violations that tenants and inspectors encounter?
-
 
 ```{r}
 # ===  Violation Class Distribution ===
@@ -893,7 +919,7 @@ class_data <- housing |>
 
 ggplot(class_data, aes(x = reorder(ClassLabel, N), y = N, fill = Class)) +
   geom_col(fill = "steelblue") +
-  geom_text(aes(label = scales::comma(N)), hjust = -0.1, size = 5) +
+  geom_text(aes(label = scales::comma(N)), hjust = -0.1, size = 3) +
   coord_flip() +
   scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.15))) +
   labs(
@@ -904,14 +930,21 @@ ggplot(class_data, aes(x = reorder(ClassLabel, N), y = N, fill = Class)) +
   ) +
   theme_minimal(base_size = 16) +
   theme(
-    plot.title = element_text(face = "bold"),
+    plot.title = element_text(face = "bold", size =12),
+    
     legend.position = "none"
   )
 
 ```
 
+
+Majority of violations (~238k) are classified as hazardous (Class B) followed by immediately hazardous (Class C) which is ~185k violations, indicating very serious safety and habitability concerns in Manhattan. Class B violations, which require correction within 30 days, dominate the landscape. This high proportion of serious violations highlights how important it is to thouroughly inspect a building before renting.
+
+
 ## Rent-Impairing Violation
+
 ```{r}
+
 # === Rent-Impairing Violations ===
 
 rent_data <- housing |>
@@ -932,8 +965,8 @@ ggplot(rent_data, aes(x = Label, y = N, fill = RentImpairing)) +
     vjust = -0.5,
     size = 5
   ) +
-  scale_fill_manual(values = c("N" = "steelblue", "Y" = "darkred")) +
-  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.1))) +
+  geom_col(fill = "steelblue") +
+  scale_y_continuous(labels = scales::comma, expand = expansion(mult = c(0, 0.5))) +
   labs(
     title = "Rent-Impairing vs Non-Rent-Impairing Violations",
     subtitle = "Manhattan, 2022-2025",
@@ -948,7 +981,7 @@ ggplot(rent_data, aes(x = Label, y = N, fill = RentImpairing)) +
 
 ```
 
-
+Here, Non-Rent-Impairing is 542,652 (92.1%) and has the a very big majority while rent-Impairing is only 46,353 (7.9%) which means serious habitability issues. This means only 7.9% directly affect habitability and could legally justify rent withholding but though most violations are non-rent-impairing only, rent-impairing violations represent conditions severe enough to make apartments legally uninhabitable like lack of basics amenities like heat, hot water, or having structural hazards.
 
 ## Save cleaned RDS as backups
 

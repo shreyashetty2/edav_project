@@ -6,7 +6,7 @@ execute:
   echo: true
 
 book:
-  title: "NYC Building Violation Analysis"
+  title: "NYC Housing Violation and Complaints Analysis"
   author:
     - Shreya Vishwanath Shetty (svs2148)
     - Shruti Vishwanath Shetty (ss7592)
@@ -20,7 +20,7 @@ book:
     - index.qmd
     - data.qmd
     - project_code_final.qmd
-    - results.qmd
+    # - results.qmd
     - conclusion.qmd
 
 format:
