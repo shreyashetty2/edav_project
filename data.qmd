@@ -1,15 +1,27 @@
+---
+editor: visual
+execute:
+  echo: true
+  warning: false
+  message: false
+format:
+  html:
+    fig-width: 6
+    fig-height: 4
+    out-width: 60%
+    embed-resources: true
+---
+
 # Data
 
 There are 2 dataset links that we will utilize from [https://opendata.cityofnewyork.us](https://opendata.cityofnewyork.us/). It is public data published by New York City agencies and other partners. As per our discussions during proposal approval, we have limited to 2 datasets (earlier we targeted 4) and downloaded filtered data for past 3 years and for Borough "Manhattan".
 
 The 2 datsets we are making use of from NYC Open Data are
 
-1. Housing Maintenance Code Violations
-**Link:** [Housing Maintenance Code Violations](https://data.cityofnewyork.us/Housing-Development/Housing-Maintenance-Code-Violations/wvxf-dwi5/about_data)  
+1. **Housing Maintenance Code Violations:** *Link:* [Housing Maintenance Code Violations](https://data.cityofnewyork.us/Housing-Development/Housing-Maintenance-Code-Violations/wvxf-dwi5/about_data)  
 
 
-2. 311 Service Requests from 2010 to Present
-**Link:** [311 Service Requests from 2010 to Present](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data)  
+2. *311 Service Requests from 2010 to Present:* *Link:* [311 Service Requests from 2010 to Present](https://data.cityofnewyork.us/Social-Services/311-Service-Requests-from-2010-to-Present/erm2-nwe9/about_data)  
 
 
 Both the datasets are CSV files in tabular format and they are updated daily. The HPD dataset is published by the Department of Housing Preservation and Development and contains one row per housing code violation, with about 10.4 million rows and 41 columns. It includes things like identifiers (ViolationID, BuildingID, BBL), address and borough, violation class (A/B/C/I), detailed text descriptions, multiple status dates, and basic geography. On the other hand, the 311 dataset is maintained by NYC’s 311 system and has around 41.5 million rows. It has one row per service request and the key fields include a unique request ID, the responding agency, complaint type and descriptor, creation and closure times, and several location fields such as address, ZIP, BBL, and latitude/longitude. We observed that in the 311 documentation that the “Agency Name” column is currently unreliable, so have informed us to use the “Agency” code instead.
@@ -37,6 +49,7 @@ library(tidyverse)
 library(forcats)
 library(stringr)
 library(redav)
+
 # ========== HOUSING VIOLATIONS ==========
 housing_raw <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/Housing_Violations_2022_onwards.csv")
 

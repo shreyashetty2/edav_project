@@ -40,7 +40,7 @@ library(GGally)
 
 ```{r}
 # ========== HOUSING VIOLATIONS ==========
-housing_raw <- read.csv("\edav_project\datasets\Housing_Violations_2022_onwards.csv")
+housing_raw <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/Housing_Violations_2022_onwards.csv")
 
 # ========== 311 HOUSING COMPLAINTS ==========
 sr311_raw   <- read.csv("/Users/shreyashetty/Documents/Fall 2025 Courses/EDAV/Final_Project/edav_project/datasets/311_Housing_Complaints_2022_onwards.csv")
@@ -602,8 +602,6 @@ ggplot(panel_all, aes(x = Value, y = n, fill = Source)) +
 
 Here, we compared the top 10 blocks, housing/violation categories, streets, and ZIP codes in Manhattan across both are datasets and we can conclude that mostly same areas and same problem types show up in both datasets at the top, like blocks 2136 and 2170 have highest violations/complaints, streets like Broadway and St Nicholas Avenue also have highest records in both, ZIP codes 10031–10033, 10027 all have very high counts in both datasets, and categories like HEAT/HOT WATER, PLUMBING, and PAINT/PLASTER dominate for both complaints and violations, indicating that both our datasets focus on similar set of buildings, locations, categories, and issues.
 
-
-
 ## Time Series
 
 ### Housing Daily
@@ -803,7 +801,6 @@ sr311 |>
 ```
 
 Both the above location plots show that overall the housing violations and 311 complaints are spread across the almost full north–south span of Manhattan with very similar clusters in same bands of longitude and latitude but 311 plot is a bit more denser yet still both datasets show similar island shape and highlight the same high‑activity corridors. This basically means that hot spots in the plot for both the datasets mostly occur in same parts of Manhattan.
-
 
 ## Parallel Coordinates plot
 

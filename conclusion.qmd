@@ -1,8 +1,10 @@
 # Conclusion
 
+
 ## What the data says about Manhattan housing problems:
 
 Across 3 years of data from 2022-25, tenant complaints to 311 service and official housing violations records in Manhattan basically have the same core issues overall and most of them are from the same regions as well. The biggest problem shared in both the dataset is Heat and hot water and 311 service receives way too many heating complaints than any other category, but only comparatively smaller fraction of these calls end up being recorded in HPD violations, which suggest not every complaint leads to enforcement by the management/city.
+
 
 ## Where and when problems are concentrated:
 
@@ -10,9 +12,11 @@ All the top complaints, issues/problem blocks, streets, and ZIP codes are almost
 
 Also, Time‑series views showed that at the daily level, both datasets are very noisy, with a few extreme spikes for violations that look like one‑off batch events rather than a real seasonal/unique trend, and aggregating to months and quarters reveals a much clearer patterns where 311 heating complaints and related violations peak in the winter and drop in the summer, which is logical, but other categories and overall violation counts fluctuate very less with no strong long‑run upward or downward trend, indicating that there isn't really a strong pattern/trend of complaints during the whole year.
 
+
 ## How serious the housing violations are:
 
 Looking at severity codes and levels, most housing violations in Manhattan are not minor problems because hazardous Class B and immediately hazardous Class C together account for a lot more than half the records, with Class B alone having ~238,000 and Class C having ~185,000 cases during 2022–2025. Although, only ~8 percent of violations are explicitly marked as rent‑impairing—conditions serious enough to threaten basic habitability, our building‑level analysis shows that buildings/regions with higher share of Class C violations often tend to have higher share of rent‑impairing problems. This basically mean some buildings have a highly disproportionate amount concentrated with most severe issues.
+
 
 ## How individual buildings behave:
 
